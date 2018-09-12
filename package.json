@@ -1,0 +1,21 @@
+{
+  "name": "frenet-serret-frames",
+  "version": "1.0.0",
+  "description": "Compute Frenet-Serret frames for a path of 3D points and tangents.",
+  "main": "index.js",
+  "scripts": {
+    "start": "budo demo.js --open --live"
+  },
+  "author": "Damien Seguin (https://dmnsgn.me)",
+  "license": "MIT",
+  "devDependencies": {
+    "budo": "^11.3.2",
+    "pex-cam": "^2.7.1",
+    "pex-context": "^2.6.0"
+  },
+  "dependencies": {
+    "gl-matrix": "^2.8.1",
+    "lodash": "^4.17.10",
+    "path-tangents": "^1.0.0"
+  }
+}
