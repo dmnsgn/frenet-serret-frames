@@ -8,6 +8,17 @@
   },
   "author": "Damien Seguin (https://dmnsgn.me)",
   "license": "MIT",
+  "repository": "https://github.com/dmnsgn/frenet-serret-frames",
+  "keywords": [
+    "path",
+    "spline",
+    "tangents",
+    "geometry",
+    "frenet",
+    "serret",
+    "frames",
+    "parallel transport"
+  ],
   "devDependencies": {
     "budo": "^11.3.2",
     "pex-cam": "^2.7.1",
