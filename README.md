@@ -1,6 +1,5 @@
-# frenet-serret-frames
+# frenet-serret-frames [![stable](http://badges.github.io/stability-badges/dist/stable.svg)](http://github.com/badges/stability-badges)
 
-[![stable](http://badges.github.io/stability-badges/dist/stable.svg)](http://github.com/badges/stability-badges)
 [![npm version](https://badge.fury.io/js/frenet-serret-frames.svg)](https://www.npmjs.com/package/frenet-serret-frames)
 [![styled with prettier](https://img.shields.io/badge/styled_with-prettier-ff69b4.svg)](https://github.com/prettier/prettier)
 
