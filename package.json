@@ -1,6 +1,6 @@
 {
   "name": "frenet-serret-frames",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Compute Frenet-Serret frames for a path of 3D points and tangents.",
   "main": "index.js",
   "scripts": {
