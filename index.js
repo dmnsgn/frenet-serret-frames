@@ -1,5 +1,5 @@
 const { vec3, quat } = require("gl-matrix");
-const { clamp } = require("lodash");
+const clamp = require("lodash/clamp.js");
 
 const X_UP = [1, 0, 0];
 const Y_UP = [0, 1, 0];
