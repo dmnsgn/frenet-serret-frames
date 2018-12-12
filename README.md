@@ -13,7 +13,7 @@ Compute Frenet-Serret frames for a path of 3D points and tangents. See [Frenetâ€
 npm install frenet-serret-frames
 ```
 
-[![NPM](https://nodei.co/npm/frenet-serret-frames.png)](https://nodei.co/npm/frenet-serret-frames/)
+[![NPM](https://nodei.co/npm/frenet-serret-frames.png)](https://nodei.co/npm/frenet-serret-frames/) [![Greenkeeper badge](https://badges.greenkeeper.io/dmnsgn/frenet-serret-frames.svg)](https://greenkeeper.io/)
 
 ## Usage
 
