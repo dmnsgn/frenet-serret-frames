@@ -42,7 +42,73 @@ const frames = frenetSerretFrames(path, tangents, {
 
 <!-- api-start -->
 
-Auto-generated API content.
+## Functions
+
+<dl>
+<dt><a href="#frenetSerretFrames">frenetSerretFrames(points, tangents, [options])</a> ⇒ <code><a href="#Frame">Array.&lt;Frame&gt;</a></code></dt>
+<dd><p>Compute Frenet-Serret frames for a path of 3D points and tangents</p>
+</dd>
+</dl>
+
+## Typedefs
+
+<dl>
+<dt><a href="#vec3">vec3</a> : <code>Array.&lt;number&gt;</code></dt>
+<dd></dd>
+<dt><a href="#Options">Options</a> : <code>Object</code></dt>
+<dd><p>Options for frames computation. All optional.</p>
+</dd>
+<dt><a href="#Frame">Frame</a> : <code>Object</code></dt>
+<dd></dd>
+</dl>
+
+<a name="frenetSerretFrames"></a>
+
+## frenetSerretFrames(points, tangents, [options]) ⇒ [<code>Array.&lt;Frame&gt;</code>](#Frame)
+
+Compute Frenet-Serret frames for a path of 3D points and tangents
+
+**Kind**: global function  
+**See**: [Frenet–Serret formulas](https://en.wikipedia.org/wiki/Frenet%E2%80%93Serret_formulas)
+
+| Param     | Type                                     | Default         | Description                                                             |
+| --------- | ---------------------------------------- | --------------- | ----------------------------------------------------------------------- |
+| points    | [<code>Array.&lt;vec3&gt;</code>](#vec3) |                 | Array of 3D points [x, y, z].                                           |
+| tangents  | [<code>Array.&lt;vec3&gt;</code>](#vec3) |                 | Array of 3D points [x, y, z] corresponding to the tangents of the path. |
+| [options] | [<code>Options</code>](#Options)         | <code>{}</code> |                                                                         |
+
+<a name="vec3"></a>
+
+## vec3 : <code>Array.&lt;number&gt;</code>
+
+**Kind**: global typedef  
+<a name="Options"></a>
+
+## Options : <code>Object</code>
+
+Options for frames computation. All optional.
+
+**Kind**: global typedef  
+**Properties**
+
+| Name            | Type                       | Default            | Description                                                                                          |
+| --------------- | -------------------------- | ------------------ | ---------------------------------------------------------------------------------------------------- |
+| [closed]        | <code>boolean</code>       | <code>false</code> | Specify is the path is closed.                                                                       |
+| [initialNormal] | [<code>vec3</code>](#vec3) | <code></code>      | Specify a starting normal for the frames. Default to the direction of the minimum tangent component. |
+
+<a name="Frame"></a>
+
+## Frame : <code>Object</code>
+
+**Kind**: global typedef  
+**Properties**
+
+| Name     | Type                       |
+| -------- | -------------------------- |
+| position | [<code>vec3</code>](#vec3) |
+| normal   | [<code>vec3</code>](#vec3) |
+| binormal | [<code>vec3</code>](#vec3) |
+| tangent  | [<code>vec3</code>](#vec3) |
 
 <!-- api-end -->
 
