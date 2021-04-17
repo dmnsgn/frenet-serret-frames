@@ -2,13 +2,6 @@
   "name": "frenet-serret-frames",
   "version": "1.1.0",
   "description": "Compute Frenet-Serret frames for a path of 3D points and tangents.",
-  "main": "index.js",
-  "scripts": {
-    "start": "budo demo.js --open --live"
-  },
-  "author": "Damien Seguin (https://dmnsgn.me)",
-  "license": "MIT",
-  "repository": "https://github.com/dmnsgn/frenet-serret-frames",
   "keywords": [
     "path",
     "spline",
@@ -17,16 +10,41 @@
     "frenet",
     "serret",
     "frames",
-    "parallel transport"
+    "parallel-transport"
   ],
-  "devDependencies": {
-    "budo": "^11.5.0",
-    "path-tangents": "^1.0.0",
-    "pex-cam": "^2.7.1",
-    "pex-context": "^2.7.1"
-  },
+  "homepage": "https://github.com/dmnsgn/frenet-serret-frames",
+  "bugs": "https://github.com/dmnsgn/frenet-serret-frames/issues",
+  "repository": "dmnsgn/frenet-serret-frames",
+  "funding": [
+    {
+      "type": "individual",
+      "url": "https://paypal.me/dmnsgn"
+    },
+    {
+      "type": "individual",
+      "url": "https://commerce.coinbase.com/checkout/56cbdf28-e323-48d8-9c98-7019e72c97f3"
+    }
+  ],
+  "license": "MIT",
+  "author": "Damien Seguin (https://github.com/dmnsgn)",
+  "type": "module",
+  "main": "index.js",
+  "types": "types/index.d.ts",
   "dependencies": {
-    "gl-matrix": "^2.8.1",
-    "lodash": "^4.17.11"
+    "clamp": "^1.0.1",
+    "gl-matrix": "^3.3.0"
+  },
+  "devDependencies": {
+    "assert": "^2.0.0",
+    "core-js": "^3.10.1",
+    "dat.gui": "^0.7.7",
+    "es-module-shims": "^0.10.4",
+    "path-tangents": "^2.0.1",
+    "pex-cam": "^2.8.0",
+    "pex-context": "^2.10.4"
+  },
+  "engines": {
+    "node": ">=15.0.0",
+    "npm": ">=7.0.0"
   }
 }

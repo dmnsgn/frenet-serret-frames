@@ -1,14 +1,42 @@
-const { vec3, quat } = require("gl-matrix");
-const clamp = require("lodash/clamp.js");
+import { vec3, quat } from "gl-matrix";
+import clamp from "clamp";
+
+/**
+ * @typedef {number[]} vec3
+ */
+
+/**
+ * @typedef {Object} Options Options for frames computation. All optional.
+ * @property {boolean} [closed=false] Specify is the path is closed.
+ * @property {vec3} [initialNormal=null] Specify a starting normal for the frames. Default to the direction of the minimum tangent component.
+ */
+
+/**
+ * @typedef {Object} Frame
+ * @property {vec3} position
+ * @property {vec3} normal
+ * @property {vec3} binormal
+ * @property {vec3} tangent
+ */
 
 const X_UP = [1, 0, 0];
 const Y_UP = [0, 1, 0];
 const Z_UP = [0, 0, 1];
 
-function computeFrenetSerretFrames(points, tangents, options) {
+/**
+ * Compute Frenet-Serret frames for a path of 3D points and tangents
+ *
+ * @param {vec3[]} points Array of 3D points [x, y, z].
+ * @param {vec3[]} tangents Array of 3D points [x, y, z] corresponding to the tangents of the path.
+ * @param {Options} [options={}]
+ * @returns {Frame[]}
+ *
+ * @see [Frenet–Serret formulas]{@link https://en.wikipedia.org/wiki/Frenet%E2%80%93Serret_formulas}
+ */
+function frenetSerretFrames(points, tangents, options) {
   // Extends options
   const { closed = false, initialNormal = null } = {
-    ...options
+    ...options,
   };
 
   const frames = [];
@@ -42,7 +70,7 @@ function computeFrenetSerretFrames(points, tangents, options) {
     position: [...points[0]],
     normal: vec3.clone(normal),
     binormal: vec3.clone(binormal),
-    tangent: vec3.clone(tangent)
+    tangent: vec3.clone(tangent),
   });
 
   // Compute the rest of the frames
@@ -71,7 +99,7 @@ function computeFrenetSerretFrames(points, tangents, options) {
       position: [...position],
       normal: vec3.clone(normal),
       binormal: vec3.clone(binormal),
-      tangent: vec3.clone(tangent)
+      tangent: vec3.clone(tangent),
     });
   }
 
@@ -101,4 +129,4 @@ function computeFrenetSerretFrames(points, tangents, options) {
   return frames;
 }
 
-module.exports = computeFrenetSerretFrames;
+export default frenetSerretFrames;

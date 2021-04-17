@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>
+      frenet-serret-frames by Damien Seguin (https://github.com/dmnsgn)
+    </title>
+    <style>
+      :root {
+        --color-dark: #404040;
+        --color-light: #f2f2f2;
+        --color-accent: #fd5e62;
+      }
+
+      body {
+        margin: 0;
+        overscroll-behavior: none;
+        font-family: sans-serif;
+        color: var(--color-light);
+        background-color: var(--color-dark);
+      }
+
+      main {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+      }
+      h1 {
+        position: absolute;
+        top: 0;
+        left: 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>frenet-serret-frames</h1>
+    </main>
+    <script async src="web_modules/es-module-shims.js" type="module"></script>
+    <script src="web_modules/import-map.json" type="importmap"></script>
+
+    <script type="module">
+      import frenetSerretFrames from "./index.js";
+
+      import computePathTangents from "path-tangents";
+      import { vec3, mat4 } from "gl-matrix";
+      import createContext from "pex-context";
+      import pexCam from "pex-cam";
+      import { orbiter as createOrbiter } from "pex-cam";
+      import * as dat from "dat.gui";
+
+      const { perspective: createCamera } = pexCam;
+
+      const CONFIG = {
+        geometry: "torus",
+        showFrames: true,
+        showPath: true,
+      };
+
+      const geometries = {
+        torus: { path: [] },
+        helix: { path: [] },
+        circle: { path: [] },
+      };
+
+      // Create Torus knot
+      const count = 50;
+      for (let i = 0; i < count; i++) {
+        const s = 1 / 10;
+        const t = (Math.PI * 2 * i) / count;
+
+        const x =
+          10 * (Math.cos(t) + Math.cos(3 * t)) +
+          Math.cos(2 * t) +
+          Math.cos(4 * t);
+        const y = 6 * Math.sin(t) + 10 * Math.sin(3 * t);
+        const z =
+          4 * Math.sin(3 * t) * Math.sin((5 * t) / 2) +
+          4 * Math.sin(4 * t) -
+          2 * Math.sin(6 * t);
+        geometries.torus.path.push([x * s, y * s, z * s]);
+      }
+
+      // Create helix
+      for (let i = 0; i < count; i++) {
+        const t = ((Math.PI * 2 * i) / count) * 4;
+        const x = Math.cos(t);
+        const y = 0.1 * t;
+        const z = Math.sin(t);
+        geometries.helix.path.push([x, y, z]);
+      }
+
+      // Create circle
+      for (let i = 0; i < count; i++) {
+        const t = (Math.PI * 2 * i) / count;
+        const x = Math.cos(t);
+        const y = 0;
+        const z = Math.sin(t);
+        geometries.circle.path.push([x, y, z]);
+      }
+
+      // Compute frames and create buffers
+      Object.values(geometries).forEach((geometry) => {
+        // Closed
+        const isClosed = true;
+        geometry.path.push([...geometry.path[0]]);
+
+        geometry.frames = frenetSerretFrames(
+          geometry.path,
+          computePathTangents(geometry.path, isClosed),
+          {
+            closed: isClosed,
+          }
+        );
+
+        const frameScale = 0.65;
+        geometry.tnbBuffer = geometry.frames
+          .map(({ position, tangent, normal, binormal }) => [
+            position,
+            vec3.scaleAndAdd(vec3.create(), position, tangent, frameScale),
+            position,
+            vec3.scaleAndAdd(vec3.create(), position, normal, frameScale),
+            position,
+            vec3.scaleAndAdd(vec3.create(), position, binormal, frameScale),
+          ])
+          .flat();
+
+        geometry.colorBuffer = geometry.frames
+          .map(() => [
+            [1, 0, 0, 1],
+            [0.5, 0, 0, 1],
+            [0, 1, 0, 1],
+            [0, 0.5, 0, 1],
+            [0, 0, 1, 1],
+            [0, 0, 0.5, 1],
+          ])
+          .flat();
+      });
+
+      // Render
+      const ctx = createContext();
+      const camera = createCamera({
+        fov: Math.PI / 3,
+        aspect: ctx.gl.drawingBufferWidth / ctx.gl.drawingBufferHeight,
+        near: 0.1,
+        far: 100,
+        position: [0, 0, 5],
+      });
+      createOrbiter({ camera });
+
+      const drawCurve = {
+        pipeline: ctx.pipeline({
+          vert: /* glsl */ `
+attribute vec3 aPosition;
+
+uniform mat4 uProjectionMatrix;
+uniform mat4 uViewMatrix;
+uniform mat4 uModelMatrix;
+
+void main() {
+  mat4 modelViewMatrix = uViewMatrix * uModelMatrix;
+  gl_Position = uProjectionMatrix * modelViewMatrix * vec4(aPosition, 1.0);
+}
+`,
+          frag: /* glsl */ `
+precision highp float;
+
+uniform vec4 uColor;
+
+void main() {
+  gl_FragColor = uColor;
+}
+`,
+          primitive: ctx.Primitive.LineStrip,
+        }),
+        attributes: { aPosition: ctx.vertexBuffer([]) },
+        count: 0,
+        uniforms: {
+          uProjectionMatrix: camera.projectionMatrix,
+          uViewMatrix: camera.viewMatrix,
+          uModelMatrix: mat4.create(),
+          uColor: [1, 1, 1, 1],
+        },
+      };
+
+      const drawFrames = {
+        pipeline: ctx.pipeline({
+          vert: /* glsl */ `
+attribute vec3 aPosition;
+attribute vec4 aColor;
+
+uniform mat4 uProjectionMatrix;
+uniform mat4 uViewMatrix;
+uniform mat4 uModelMatrix;
+
+varying vec4 vColor;
+
+void main() {
+  vColor = aColor;
+  mat4 modelViewMatrix = uViewMatrix * uModelMatrix;
+  gl_Position = uProjectionMatrix * modelViewMatrix * vec4(aPosition, 1.0);
+}
+`,
+          frag: /* glsl */ `
+precision highp float;
+
+varying vec4 vColor;
+
+void main() {
+  gl_FragColor = vColor;
+}
+`,
+          primitive: ctx.Primitive.Lines,
+        }),
+        attributes: {
+          aPosition: ctx.vertexBuffer([]),
+          aColor: ctx.vertexBuffer([]),
+        },
+        uniforms: {
+          uProjectionMatrix: camera.projectionMatrix,
+          uViewMatrix: camera.viewMatrix,
+          uModelMatrix: mat4.create(),
+        },
+        count: 6 * frames.length,
+      };
+
+      const clearCmd = {
+        pass: ctx.pass({
+          clearColor: [0.05, 0.05, 0.05, 1],
+        }),
+      };
+
+      const updateGeometry = () => {
+        const geometry = geometries[CONFIG.geometry];
+
+        // Curve
+        ctx.update(drawCurve.attributes.aPosition, {
+          data: geometry.path,
+        });
+        drawCurve.count = geometry.path.length;
+
+        // Frames
+        ctx.update(drawFrames.attributes.aPosition, {
+          data: geometry.tnbBuffer,
+        });
+        ctx.update(drawFrames.attributes.aColor, {
+          data: geometry.colorBuffer,
+        });
+        drawFrames.count = 6 * geometry.frames.length;
+      };
+      updateGeometry();
+
+      const gui = new dat.GUI();
+      gui.add(CONFIG, "showFrames");
+      gui.add(CONFIG, "showPath");
+      gui
+        .add(CONFIG, "geometry", Object.keys(geometries))
+        .onFinishChange(() => updateGeometry());
+
+      ctx.frame(() => {
+        ctx.submit(clearCmd);
+        if (CONFIG.showFrames) ctx.submit(drawFrames);
+        if (CONFIG.showPath) ctx.submit(drawCurve);
+      });
+    </script>
+  </body>
+</html>
