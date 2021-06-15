@@ -3,11 +3,11 @@
     "assert": "./assert.js",
     "clamp": "./clamp.js",
     "core-js": "./core-js.js",
-    "dat.gui": "./dat.gui.js",
     "es-module-shims": "./es-module-shims.js",
     "gl-matrix": "./gl-matrix.js",
     "path-tangents": "./path-tangents.js",
     "pex-cam": "./pex-cam.js",
-    "pex-context": "./pex-context.js"
+    "pex-context": "./pex-context.js",
+    "tweakpane": "./tweakpane.js"
   }
 }

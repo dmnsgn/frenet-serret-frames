@@ -37,12 +37,12 @@
   },
   "devDependencies": {
     "assert": "^2.0.0",
-    "core-js": "^3.10.1",
-    "dat.gui": "^0.7.7",
-    "es-module-shims": "^0.10.4",
+    "core-js": "^3.14.0",
+    "es-module-shims": "^0.10.7",
     "path-tangents": "^2.0.1",
     "pex-cam": "^2.8.0",
-    "pex-context": "^2.10.4"
+    "pex-context": "^2.10.4",
+    "tweakpane": "^3.0.2"
   },
   "engines": {
     "node": ">=15.0.0",

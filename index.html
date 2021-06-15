@@ -49,7 +49,7 @@
       import createContext from "pex-context";
       import pexCam from "pex-cam";
       import { orbiter as createOrbiter } from "pex-cam";
-      import * as dat from "dat.gui";
+      import { Pane } from "tweakpane";
 
       const { perspective: createCamera } = pexCam;
 
@@ -252,12 +252,17 @@ void main() {
       };
       updateGeometry();
 
-      const gui = new dat.GUI();
-      gui.add(CONFIG, "showFrames");
-      gui.add(CONFIG, "showPath");
-      gui
-        .add(CONFIG, "geometry", Object.keys(geometries))
-        .onFinishChange(() => updateGeometry());
+      const pane = new Pane();
+      pane.addInput(CONFIG, "showFrames");
+      pane.addInput(CONFIG, "showPath");
+      pane
+        .addInput(CONFIG, "geometry", {
+          options: Object.keys(geometries).map((value) => ({
+            text: value.toUpperCase(),
+            value,
+          })),
+        })
+        .on("change", () => updateGeometry());
 
       ctx.frame(() => {
         ctx.submit(clearCmd);
