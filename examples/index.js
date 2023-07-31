@@ -9,7 +9,7 @@ import TweakPane from "tweakpane";
 const { Pane } = TweakPane;
 
 const CONFIG = {
-  geometry: "helix",
+  geometry: "torus",
   closed: true,
   showFrames: true,
   showPath: true,

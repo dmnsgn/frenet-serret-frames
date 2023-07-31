@@ -1,4 +1,7 @@
 /**
+ * @typedef {number[]} vec2
+ */
+/**
  * @typedef {number[]} vec3
  */
 
@@ -7,7 +10,7 @@
  * @property {Float32Array | vec3[]} positions
  * @property {Float32Array | vec3[]} [tangents]
  * @property {Float32Array | vec3[]} [normals]
- * @property {Float32Array | vec3[]} [uvs]
+ * @property {Float32Array | vec2[]} [uvs]
  * @property {(Uint8Array | Uint16Array | Uint32Array | vec3[])} [cells]
  */
 
@@ -17,7 +20,7 @@
  * @property {Float32Array | vec3[]} tangents
  * @property {Float32Array | vec3[]} normals
  * @property {Float32Array | vec3[]} binormals
- * @property {Float32Array | vec3[]} [uvs]
+ * @property {Float32Array | vec2[]} [uvs]
  * @property {(Uint8Array | Uint16Array | Uint32Array | vec3[])} [cells]
  */
 

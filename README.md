@@ -28,12 +28,9 @@ npm install frenet-serret-frames
 
 ```js
 import frenetSerretFrames from "frenet-serret-frames";
-import pathTangents from "path-tangents";
 
-const isClosed = true;
-const tangents = pathTangents(path, isClosed);
-const frames = frenetSerretFrames(path, tangents, {
-  closed: isClosed,
+const frames = frenetSerretFrames({ positions }, {
+  closed: true,
   initialNormal: [0, 1, 0],
 });
 ```
