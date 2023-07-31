@@ -1,6 +1,6 @@
 {
   "name": "frenet-serret-frames",
-  "version": "3.0.2",
+  "version": "3.0.3",
   "description": "Compute Frenet-Serret frames for a geometry of 3D positions and optionally provided tangents.",
   "keywords": [
     "path",
