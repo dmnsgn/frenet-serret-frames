@@ -50,6 +50,8 @@ const frames = frenetSerretFrames({ positions }, {
 ## Typedefs
 
 <dl>
+<dt><a href="#vec2">vec2</a> : <code>Array.&lt;number&gt;</code></dt>
+<dd></dd>
 <dt><a href="#vec3">vec3</a> : <code>Array.&lt;number&gt;</code></dt>
 <dd></dd>
 <dt><a href="#SimplicialComplex">SimplicialComplex</a> : <code>object</code></dt>
@@ -77,6 +79,11 @@ Compute Frenet-Serret frames for a geometry of 3D positions and optionally provi
 | geometry  | [<code>SimplicialComplex</code>](#SimplicialComplex) |                 |
 | [options] | [<code>Options</code>](#Options)                     | <code>{}</code> |
 
+<a name="vec2"></a>
+
+## vec2 : <code>Array.&lt;number&gt;</code>
+
+**Kind**: global typedef
 <a name="vec3"></a>
 
 ## vec3 : <code>Array.&lt;number&gt;</code>
@@ -96,7 +103,7 @@ Geometry definition.
 | positions  | <code>Float32Array</code> \| [<code>Array.&lt;vec3&gt;</code>](#vec3)                                                       |
 | [tangents] | <code>Float32Array</code> \| [<code>Array.&lt;vec3&gt;</code>](#vec3)                                                       |
 | [normals]  | <code>Float32Array</code> \| [<code>Array.&lt;vec3&gt;</code>](#vec3)                                                       |
-| [uvs]      | <code>Float32Array</code> \| [<code>Array.&lt;vec3&gt;</code>](#vec3)                                                       |
+| [uvs]      | <code>Float32Array</code> \| [<code>Array.&lt;vec2&gt;</code>](#vec2)                                                       |
 | [cells]    | <code>Uint8Array</code> \| <code>Uint16Array</code> \| <code>Uint32Array</code> \| [<code>Array.&lt;vec3&gt;</code>](#vec3) |
 
 <a name="SimplicialComplexWithTNB"></a>
@@ -114,7 +121,7 @@ Geometry definition augmented with tangent, normals and binormals.
 | tangents  | <code>Float32Array</code> \| [<code>Array.&lt;vec3&gt;</code>](#vec3)                                                       |
 | normals   | <code>Float32Array</code> \| [<code>Array.&lt;vec3&gt;</code>](#vec3)                                                       |
 | binormals | <code>Float32Array</code> \| [<code>Array.&lt;vec3&gt;</code>](#vec3)                                                       |
-| [uvs]     | <code>Float32Array</code> \| [<code>Array.&lt;vec3&gt;</code>](#vec3)                                                       |
+| [uvs]     | <code>Float32Array</code> \| [<code>Array.&lt;vec2&gt;</code>](#vec2)                                                       |
 | [cells]   | <code>Uint8Array</code> \| <code>Uint16Array</code> \| <code>Uint32Array</code> \| [<code>Array.&lt;vec3&gt;</code>](#vec3) |
 
 <a name="Options"></a>
