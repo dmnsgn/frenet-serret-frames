@@ -33,11 +33,11 @@
   "main": "index.js",
   "types": "types/index.d.ts",
   "dependencies": {
+    "path-tangents": "^3.0.0",
     "pex-math": "^4.0.0-alpha.3"
   },
   "devDependencies": {
     "es-module-shims": "^1.8.0",
-    "path-tangents": "^3.0.0",
     "pex-cam": "^3.0.0-alpha.1",
     "pex-context": "^3.0.0-alpha.7",
     "tweakpane": "^3.1.10"
