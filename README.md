@@ -29,10 +29,19 @@ npm install frenet-serret-frames
 ```js
 import frenetSerretFrames from "frenet-serret-frames";
 
-const frames = frenetSerretFrames({ positions }, {
+const geometry = { positions, cells };
+frenetSerretFrames(geometry, {
   closed: true,
   initialNormal: [0, 1, 0],
 });
+console.log(geometry);
+// {
+//   positions: Float32Array [x, y, z, x, y, z,  ...],
+//   tangents: Float32Array [x, y, z, x, y, z, ...]
+//   normals: Float32Array [x, y, z, x, y, z, ...]
+//   binormals: Float32Array [x, y, z, x, y, z, ...]
+//   cells: Uint8/16/32/Array [a, b, c, a, b, c, ...],
+// }
 ```
 
 ## API

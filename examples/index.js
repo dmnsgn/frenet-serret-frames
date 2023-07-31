@@ -1,6 +1,5 @@
 import frenetSerretFrames from "../index.js";
 
-import computePathTangents from "path-tangents";
 import { avec3, vec3, mat4, avec4 } from "pex-math";
 import createContext from "pex-context";
 import { perspective as createCamera, orbiter as createOrbiter } from "pex-cam";
@@ -172,7 +171,6 @@ Object.values(geometries).forEach((geometry) => {
       frameScale
     );
 
-    // TODO:
     avec3.set(geometry.tnbClosedBuffer, i * 6, closedGeometry.positions, i);
     avec3.set(geometry.tnbClosedBuffer, i * 6 + 1, closedGeometry.positions, i);
     avec3.addScaled(
