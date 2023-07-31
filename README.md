@@ -10,7 +10,7 @@
 [![linted with eslint](https://img.shields.io/badge/linted_with-ES_Lint-4B32C3.svg?logo=eslint)](https://github.com/eslint/eslint)
 [![license](https://img.shields.io/github/license/dmnsgn/frenet-serret-frames)](https://github.com/dmnsgn/frenet-serret-frames/blob/main/LICENSE.md)
 
-Compute Frenet-Serret frames for a path of 3D points and tangents.
+Compute Frenet-Serret frames for a geometry of 3D positions and optionally provided tangents.
 
 [![paypal](https://img.shields.io/badge/donate-paypal-informational?logo=paypal)](https://paypal.me/dmnsgn)
 [![coinbase](https://img.shields.io/badge/donate-coinbase-informational?logo=coinbase)](https://commerce.coinbase.com/checkout/56cbdf28-e323-48d8-9c98-7019e72c97f3)
@@ -68,7 +68,7 @@ const frames = frenetSerretFrames(path, tangents, {
 
 Compute Frenet-Serret frames for a path of 3D points and tangents
 
-**Kind**: global function  
+**Kind**: global function
 **See**: [Frenet–Serret formulas](https://en.wikipedia.org/wiki/Frenet%E2%80%93Serret_formulas)
 
 | Param     | Type                                     | Default         | Description                                                             |
@@ -81,14 +81,14 @@ Compute Frenet-Serret frames for a path of 3D points and tangents
 
 ## vec3 : <code>Array.&lt;number&gt;</code>
 
-**Kind**: global typedef  
+**Kind**: global typedef
 <a name="Options"></a>
 
 ## Options : <code>Object</code>
 
 Options for frames computation. All optional.
 
-**Kind**: global typedef  
+**Kind**: global typedef
 **Properties**
 
 | Name            | Type                       | Default            | Description                                                                                          |
@@ -100,7 +100,7 @@ Options for frames computation. All optional.
 
 ## Frame : <code>Object</code>
 
-**Kind**: global typedef  
+**Kind**: global typedef
 **Properties**
 
 | Name     | Type                       |

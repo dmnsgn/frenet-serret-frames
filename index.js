@@ -1,132 +1,147 @@
-import { vec3, quat } from "gl-matrix";
-import clamp from "clamp";
-
-/**
- * @typedef {number[]} vec3
- */
-
-/**
- * @typedef {Object} Options Options for frames computation. All optional.
- * @property {boolean} [closed=false] Specify is the path is closed.
- * @property {vec3} [initialNormal=null] Specify a starting normal for the frames. Default to the direction of the minimum tangent component.
- */
-
-/**
- * @typedef {Object} Frame
- * @property {vec3} position
- * @property {vec3} normal
- * @property {vec3} binormal
- * @property {vec3} tangent
- */
+import { avec3, vec3, quat, utils } from "pex-math";
+import computePathTangents from "path-tangents";
 
 const X_UP = [1, 0, 0];
 const Y_UP = [0, 1, 0];
 const Z_UP = [0, 0, 1];
 
 /**
- * Compute Frenet-Serret frames for a path of 3D points and tangents
+ * Compute Frenet-Serret frames for a geometry of 3D positions and optionally provided tangents.
  *
- * @param {vec3[]} points Array of 3D points [x, y, z].
- * @param {vec3[]} tangents Array of 3D points [x, y, z] corresponding to the tangents of the path.
- * @param {Options} [options={}]
- * @returns {Frame[]}
+ * @param {import("./types.js").SimplicialComplex} geometry
+ * @param {import("./types.js").Options} [options={}]
+ * @returns {import("./types.js").SimplicialComplexWithTNB}
  *
  * @see [Frenet–Serret formulas]{@link https://en.wikipedia.org/wiki/Frenet%E2%80%93Serret_formulas}
  */
-function frenetSerretFrames(points, tangents, options) {
-  // Extends options
-  const { closed = false, initialNormal = null } = {
-    ...options,
-  };
+function frenetSerretFrames(geometry, options) {
+  const isTypedArray = !Array.isArray(geometry.positions);
 
-  const frames = [];
-  const v = vec3.create();
+  // Extends options
+  const { closed = false, initialNormal = null } = { ...options };
+
+  const size = geometry.positions.length / (isTypedArray ? 3 : 1);
+  geometry.tangents ||= computePathTangents(geometry.positions, closed);
+  geometry.normals ||= isTypedArray ? new Float32Array(size * 3) : [];
+  geometry.binormals ||= isTypedArray ? new Float32Array(size * 3) : [];
+
+  let v = vec3.create();
 
   // Compute initial frame
-  let tangent = tangents[0];
-  let normal = initialNormal || vec3.create();
+  let tangent = isTypedArray
+    ? geometry.tangents.slice(0, 3)
+    : geometry.tangents[0];
+  let normal;
 
-  const atx = Math.abs(tangent[0]);
-  const aty = Math.abs(tangent[1]);
-  const atz = Math.abs(tangent[2]);
+  if (initialNormal) {
+    normal = [...initialNormal];
+  } else {
+    const atx = Math.abs(tangent[0]);
+    const aty = Math.abs(tangent[1]);
+    const atz = Math.abs(tangent[2]);
 
-  if (!initialNormal) {
     if (aty > atx && aty >= atz) {
-      vec3.cross(v, tangent, X_UP);
+      v = vec3.cross([...tangent], X_UP);
     } else if (atz > atx && atz >= aty) {
-      vec3.cross(v, tangent, Y_UP);
+      v = vec3.cross([...tangent], Y_UP);
     } else {
-      vec3.cross(v, tangent, Z_UP);
+      v = vec3.cross([...tangent], Z_UP);
     }
 
-    vec3.cross(normal, tangent, v);
-    vec3.normalize(normal, normal);
+    normal = vec3.normalize(vec3.cross([...tangent], v));
   }
 
-  let binormal = vec3.cross(vec3.create(), tangent, normal);
-  vec3.normalize(binormal, binormal);
+  let binormal = vec3.normalize(vec3.cross([...tangent], normal));
 
-  frames.push({
-    position: [...points[0]],
-    normal: vec3.clone(normal),
-    binormal: vec3.clone(binormal),
-    tangent: vec3.clone(tangent),
-  });
+  if (isTypedArray) {
+    geometry.normals.set(normal);
+    geometry.binormals.set(binormal);
+  } else {
+    geometry.normals.push(normal);
+    geometry.binormals.push(binormal);
+  }
 
   // Compute the rest of the frames
   const rotation = quat.create();
-  let previousTangent;
+  let previousTangent = vec3.create();
 
-  for (let i = 1; i < points.length; i++) {
-    const position = points[i];
-    previousTangent = tangents[i - 1];
-    tangent = tangents[i];
-    normal = vec3.clone(normal);
-    binormal = vec3.clone(binormal);
+  for (let i = 1; i < size; i++) {
+    if (isTypedArray) {
+      avec3.set(previousTangent, 0, geometry.tangents, i - 1);
+      avec3.set(tangent, 0, geometry.tangents, i);
+    } else {
+      previousTangent = geometry.tangents[i - 1];
+      tangent = geometry.tangents[i];
+    }
 
-    vec3.cross(v, previousTangent, tangent);
+    normal = vec3.copy(normal);
+    binormal = vec3.copy(binormal);
+
+    v = vec3.cross([...previousTangent], tangent);
 
     if (vec3.length(v) > Number.EPSILON) {
-      vec3.normalize(v, v);
+      vec3.normalize(v);
 
-      let theta = Math.acos(clamp(vec3.dot(previousTangent, tangent), -1, 1));
-      quat.setAxisAngle(rotation, v, theta);
-      vec3.transformQuat(normal, normal, rotation);
+      const theta = Math.acos(
+        utils.clamp(vec3.dot(previousTangent, tangent), -1, 1),
+      );
+      quat.fromAxisAngle(rotation, v, theta);
+      vec3.multQuat(normal, rotation);
     }
-    vec3.cross(binormal, tangent, normal);
+    binormal = vec3.cross([...tangent], normal);
 
-    frames.push({
-      position: [...position],
-      normal: vec3.clone(normal),
-      binormal: vec3.clone(binormal),
-      tangent: vec3.clone(tangent),
-    });
+    if (isTypedArray) {
+      avec3.set(geometry.normals, i, normal, 0);
+      avec3.set(geometry.binormals, i, binormal, 0);
+    } else {
+      geometry.normals.push(normal);
+      geometry.binormals.push(binormal);
+    }
   }
 
   if (closed) {
-    const firstNormal = frames[0].normal;
-    const lastNormal = frames[frames.length - 1].normal;
+    const firstNormal = isTypedArray
+      ? geometry.normals.slice(0, 3)
+      : geometry.normals[0];
+    const lastNormal = isTypedArray
+      ? geometry.normals.slice(-3)
+      : geometry.normals.at(-1);
+    const firstTangent = isTypedArray
+      ? geometry.tangents.slice(0, 3)
+      : geometry.tangents[0];
 
-    let theta = Math.acos(clamp(vec3.dot(firstNormal, lastNormal), 0, 1));
-    theta /= frames.length - 1;
+    let theta = Math.acos(
+      utils.clamp(vec3.dot(firstNormal, lastNormal), -1, 1),
+    );
+    theta /= size - 1;
 
-    if (
-      vec3.dot(
-        vec3.clone(tangents[0]),
-        vec3.cross(v, firstNormal, lastNormal)
-      ) > 0
-    ) {
+    if (vec3.dot(firstTangent, vec3.cross([...firstNormal], lastNormal)) > 0) {
       theta = -theta;
     }
 
-    frames.forEach(({ normal, binormal, tangent }, index) => {
-      quat.setAxisAngle(rotation, tangent, theta * index);
-      vec3.transformQuat(normal, normal, rotation);
-      vec3.cross(binormal, tangent, normal);
-    });
+    for (let i = 0; i < size; i++) {
+      if (isTypedArray) {
+        avec3.set(tangent, 0, geometry.tangents, i);
+        avec3.set(normal, 0, geometry.normals, i);
+        avec3.set(binormal, 0, geometry.binormals, i);
+
+        quat.fromAxisAngle(rotation, tangent, theta * i);
+        vec3.multQuat(normal, rotation);
+        binormal = vec3.cross([...tangent], normal);
+
+        avec3.set(geometry.normals, i, normal, 0);
+        avec3.set(geometry.binormals, i, binormal, 0);
+      } else {
+        const tangent = geometry.tangents[i];
+        const normal = geometry.normals[i];
+        quat.fromAxisAngle(rotation, tangent, theta * i);
+        vec3.multQuat(normal, rotation);
+        geometry.binormals[i] = vec3.cross([...tangent], normal);
+      }
+    }
   }
 
-  return frames;
+  return geometry;
 }
 
 export default frenetSerretFrames;

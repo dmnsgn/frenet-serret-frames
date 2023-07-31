@@ -1,10 +1,9 @@
 {
   "imports": {
-    "assert": "./assert.js",
-    "clamp": "./clamp.js",
-    "core-js": "./core-js.js",
+    "pex-math": "./pex-math.js",
     "es-module-shims": "./es-module-shims.js",
-    "gl-matrix": "./gl-matrix.js",
+    "es-module-shims/debug": "./es-module-shims/dist/es-module-shims.debug.js",
+    "es-module-shims/wasm": "./es-module-shims/dist/es-module-shims.wasm.js",
     "path-tangents": "./path-tangents.js",
     "pex-cam": "./pex-cam.js",
     "pex-context": "./pex-context.js",
