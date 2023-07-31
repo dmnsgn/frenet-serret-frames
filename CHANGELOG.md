@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+# [3.0.0](https://github.com/dmnsgn/frenet-serret-frames/compare/v2.1.0...v3.0.0) (2023-07-31)
+
+
+### Features
+
+* add typed array support ([d766f7c](https://github.com/dmnsgn/frenet-serret-frames/commit/d766f7c1beafcd23130d95f4bc6faa591ae07f10))
+
+
+### BREAKING CHANGES
+
+* use pex-math
+* use geometry as first argument
+* return augmented geometry and not frames
+
+
+
 # [2.1.0](https://github.com/dmnsgn/frenet-serret-frames/compare/v2.0.1...v2.1.0) (2021-10-02)
 
 

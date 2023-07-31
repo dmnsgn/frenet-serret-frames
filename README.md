@@ -45,8 +45,8 @@ const frames = frenetSerretFrames(path, tangents, {
 ## Functions
 
 <dl>
-<dt><a href="#frenetSerretFrames">frenetSerretFrames(points, tangents, [options])</a> ⇒ <code><a href="#Frame">Array.&lt;Frame&gt;</a></code></dt>
-<dd><p>Compute Frenet-Serret frames for a path of 3D points and tangents</p>
+<dt><a href="#frenetSerretFrames">frenetSerretFrames(geometry, [options])</a> ⇒ <code><a href="#SimplicialComplexWithTNB">SimplicialComplexWithTNB</a></code></dt>
+<dd><p>Compute Frenet-Serret frames for a geometry of 3D positions and optionally provided tangents.</p>
 </dd>
 </dl>
 
@@ -55,36 +55,74 @@ const frames = frenetSerretFrames(path, tangents, {
 <dl>
 <dt><a href="#vec3">vec3</a> : <code>Array.&lt;number&gt;</code></dt>
 <dd></dd>
-<dt><a href="#Options">Options</a> : <code>Object</code></dt>
+<dt><a href="#SimplicialComplex">SimplicialComplex</a> : <code>object</code></dt>
+<dd><p>Geometry definition.</p>
+</dd>
+<dt><a href="#SimplicialComplexWithTNB">SimplicialComplexWithTNB</a> : <code>object</code></dt>
+<dd><p>Geometry definition augmented with tangent, normals and binormals.</p>
+</dd>
+<dt><a href="#Options">Options</a> : <code>object</code></dt>
 <dd><p>Options for frames computation. All optional.</p>
 </dd>
-<dt><a href="#Frame">Frame</a> : <code>Object</code></dt>
-<dd></dd>
 </dl>
 
 <a name="frenetSerretFrames"></a>
 
-## frenetSerretFrames(points, tangents, [options]) ⇒ [<code>Array.&lt;Frame&gt;</code>](#Frame)
+## frenetSerretFrames(geometry, [options]) ⇒ [<code>SimplicialComplexWithTNB</code>](#SimplicialComplexWithTNB)
 
-Compute Frenet-Serret frames for a path of 3D points and tangents
+Compute Frenet-Serret frames for a geometry of 3D positions and optionally provided tangents.
 
 **Kind**: global function
 **See**: [Frenet–Serret formulas](https://en.wikipedia.org/wiki/Frenet%E2%80%93Serret_formulas)
 
-| Param     | Type                                     | Default         | Description                                                             |
-| --------- | ---------------------------------------- | --------------- | ----------------------------------------------------------------------- |
-| points    | [<code>Array.&lt;vec3&gt;</code>](#vec3) |                 | Array of 3D points [x, y, z].                                           |
-| tangents  | [<code>Array.&lt;vec3&gt;</code>](#vec3) |                 | Array of 3D points [x, y, z] corresponding to the tangents of the path. |
-| [options] | [<code>Options</code>](#Options)         | <code>{}</code> |                                                                         |
+| Param     | Type                                                 | Default         |
+| --------- | ---------------------------------------------------- | --------------- |
+| geometry  | [<code>SimplicialComplex</code>](#SimplicialComplex) |                 |
+| [options] | [<code>Options</code>](#Options)                     | <code>{}</code> |
 
 <a name="vec3"></a>
 
 ## vec3 : <code>Array.&lt;number&gt;</code>
 
 **Kind**: global typedef
+<a name="SimplicialComplex"></a>
+
+## SimplicialComplex : <code>object</code>
+
+Geometry definition.
+
+**Kind**: global typedef
+**Properties**
+
+| Name       | Type                                                                                                                        |
+| ---------- | --------------------------------------------------------------------------------------------------------------------------- |
+| positions  | <code>Float32Array</code> \| [<code>Array.&lt;vec3&gt;</code>](#vec3)                                                       |
+| [tangents] | <code>Float32Array</code> \| [<code>Array.&lt;vec3&gt;</code>](#vec3)                                                       |
+| [normals]  | <code>Float32Array</code> \| [<code>Array.&lt;vec3&gt;</code>](#vec3)                                                       |
+| [uvs]      | <code>Float32Array</code> \| [<code>Array.&lt;vec3&gt;</code>](#vec3)                                                       |
+| [cells]    | <code>Uint8Array</code> \| <code>Uint16Array</code> \| <code>Uint32Array</code> \| [<code>Array.&lt;vec3&gt;</code>](#vec3) |
+
+<a name="SimplicialComplexWithTNB"></a>
+
+## SimplicialComplexWithTNB : <code>object</code>
+
+Geometry definition augmented with tangent, normals and binormals.
+
+**Kind**: global typedef
+**Properties**
+
+| Name      | Type                                                                                                                        |
+| --------- | --------------------------------------------------------------------------------------------------------------------------- |
+| positions | <code>Float32Array</code> \| [<code>Array.&lt;vec3&gt;</code>](#vec3)                                                       |
+| tangents  | <code>Float32Array</code> \| [<code>Array.&lt;vec3&gt;</code>](#vec3)                                                       |
+| normals   | <code>Float32Array</code> \| [<code>Array.&lt;vec3&gt;</code>](#vec3)                                                       |
+| binormals | <code>Float32Array</code> \| [<code>Array.&lt;vec3&gt;</code>](#vec3)                                                       |
+| [uvs]     | <code>Float32Array</code> \| [<code>Array.&lt;vec3&gt;</code>](#vec3)                                                       |
+| [cells]   | <code>Uint8Array</code> \| <code>Uint16Array</code> \| <code>Uint32Array</code> \| [<code>Array.&lt;vec3&gt;</code>](#vec3) |
+
 <a name="Options"></a>
 
-## Options : <code>Object</code>
+## Options : <code>object</code>
 
 Options for frames computation. All optional.
 
@@ -95,20 +133,6 @@ Options for frames computation. All optional.
 | --------------- | -------------------------- | ------------------ | ---------------------------------------------------------------------------------------------------- |
 | [closed]        | <code>boolean</code>       | <code>false</code> | Specify is the path is closed.                                                                       |
 | [initialNormal] | [<code>vec3</code>](#vec3) | <code></code>      | Specify a starting normal for the frames. Default to the direction of the minimum tangent component. |
-
-<a name="Frame"></a>
-
-## Frame : <code>Object</code>
-
-**Kind**: global typedef
-**Properties**
-
-| Name     | Type                       |
-| -------- | -------------------------- |
-| position | [<code>vec3</code>](#vec3) |
-| normal   | [<code>vec3</code>](#vec3) |
-| binormal | [<code>vec3</code>](#vec3) |
-| tangent  | [<code>vec3</code>](#vec3) |
 
 <!-- api-end -->
 
