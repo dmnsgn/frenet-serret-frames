@@ -67,7 +67,7 @@ console.log(geometry);
 <dd><p>Geometry definition.</p>
 </dd>
 <dt><a href="#SimplicialComplexWithTNB">SimplicialComplexWithTNB</a> : <code>object</code></dt>
-<dd><p>Geometry definition augmented with tangent, normals and binormals.</p>
+<dd><p>Geometry definition augmented with tangents, normals and binormals.</p>
 </dd>
 <dt><a href="#Options">Options</a> : <code>object</code></dt>
 <dd><p>Options for frames computation. All optional.</p>
@@ -107,31 +107,31 @@ Geometry definition.
 **Kind**: global typedef
 **Properties**
 
-| Name       | Type                                                                                                                        |
-| ---------- | --------------------------------------------------------------------------------------------------------------------------- |
-| positions  | <code>Float32Array</code> \| [<code>Array.&lt;vec3&gt;</code>](#vec3)                                                       |
-| [tangents] | <code>Float32Array</code> \| [<code>Array.&lt;vec3&gt;</code>](#vec3)                                                       |
-| [normals]  | <code>Float32Array</code> \| [<code>Array.&lt;vec3&gt;</code>](#vec3)                                                       |
-| [uvs]      | <code>Float32Array</code> \| [<code>Array.&lt;vec2&gt;</code>](#vec2)                                                       |
-| [cells]    | <code>Uint8Array</code> \| <code>Uint16Array</code> \| <code>Uint32Array</code> \| [<code>Array.&lt;vec3&gt;</code>](#vec3) |
+| Name       | Type                                                                                                                                              |
+| ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| positions  | <code>Float32Array</code> \| <code>Array</code> \| [<code>Array.&lt;vec3&gt;</code>](#vec3)                                                       |
+| [tangents] | <code>Float32Array</code> \| <code>Array</code> \| [<code>Array.&lt;vec3&gt;</code>](#vec3)                                                       |
+| [normals]  | <code>Float32Array</code> \| <code>Array</code> \| [<code>Array.&lt;vec3&gt;</code>](#vec3)                                                       |
+| [uvs]      | <code>Float32Array</code> \| <code>Array</code> \| [<code>Array.&lt;vec2&gt;</code>](#vec2)                                                       |
+| [cells]    | <code>Uint8Array</code> \| <code>Uint16Array</code> \| <code>Uint32Array</code> \| <code>Array</code> \| [<code>Array.&lt;vec3&gt;</code>](#vec3) |
 
 <a name="SimplicialComplexWithTNB"></a>
 
 ## SimplicialComplexWithTNB : <code>object</code>
 
-Geometry definition augmented with tangent, normals and binormals.
+Geometry definition augmented with tangents, normals and binormals.
 
 **Kind**: global typedef
 **Properties**
 
-| Name      | Type                                                                                                                        |
-| --------- | --------------------------------------------------------------------------------------------------------------------------- |
-| positions | <code>Float32Array</code> \| [<code>Array.&lt;vec3&gt;</code>](#vec3)                                                       |
-| tangents  | <code>Float32Array</code> \| [<code>Array.&lt;vec3&gt;</code>](#vec3)                                                       |
-| normals   | <code>Float32Array</code> \| [<code>Array.&lt;vec3&gt;</code>](#vec3)                                                       |
-| binormals | <code>Float32Array</code> \| [<code>Array.&lt;vec3&gt;</code>](#vec3)                                                       |
-| [uvs]     | <code>Float32Array</code> \| [<code>Array.&lt;vec2&gt;</code>](#vec2)                                                       |
-| [cells]   | <code>Uint8Array</code> \| <code>Uint16Array</code> \| <code>Uint32Array</code> \| [<code>Array.&lt;vec3&gt;</code>](#vec3) |
+| Name      | Type                                                                                                                                              |
+| --------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| positions | <code>Float32Array</code> \| <code>Array</code> \| [<code>Array.&lt;vec3&gt;</code>](#vec3)                                                       |
+| tangents  | <code>Float32Array</code> \| <code>Array</code> \| [<code>Array.&lt;vec3&gt;</code>](#vec3)                                                       |
+| normals   | <code>Float32Array</code> \| <code>Array</code> \| [<code>Array.&lt;vec3&gt;</code>](#vec3)                                                       |
+| binormals | <code>Float32Array</code> \| <code>Array</code> \| [<code>Array.&lt;vec3&gt;</code>](#vec3)                                                       |
+| [uvs]     | <code>Float32Array</code> \| <code>Array</code> \| [<code>Array.&lt;vec2&gt;</code>](#vec2)                                                       |
+| [cells]   | <code>Uint8Array</code> \| <code>Uint16Array</code> \| <code>Uint32Array</code> \| <code>Array</code> \| [<code>Array.&lt;vec3&gt;</code>](#vec3) |
 
 <a name="Options"></a>
 
