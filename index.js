@@ -15,20 +15,20 @@ const Z_UP = [0, 0, 1];
  * @see [Frenet–Serret formulas]{@link https://en.wikipedia.org/wiki/Frenet%E2%80%93Serret_formulas}
  */
 function frenetSerretFrames(geometry, options) {
-  const isTypedArray = !Array.isArray(geometry.positions);
+  const isFlatArray = !geometry.positions[0]?.length;
 
   // Extends options
   const { closed = false, initialNormal = null } = { ...options };
 
-  const size = geometry.positions.length / (isTypedArray ? 3 : 1);
+  const size = geometry.positions.length / (isFlatArray ? 3 : 1);
   geometry.tangents ||= computePathTangents(geometry.positions, closed);
-  geometry.normals ||= isTypedArray ? new Float32Array(size * 3) : [];
-  geometry.binormals ||= isTypedArray ? new Float32Array(size * 3) : [];
+  geometry.normals ||= isFlatArray ? new Float32Array(size * 3) : [];
+  geometry.binormals ||= isFlatArray ? new Float32Array(size * 3) : [];
 
   let v = vec3.create();
 
   // Compute initial frame
-  let tangent = isTypedArray
+  let tangent = isFlatArray
     ? geometry.tangents.slice(0, 3)
     : geometry.tangents[0];
   let normal;
@@ -53,7 +53,7 @@ function frenetSerretFrames(geometry, options) {
 
   let binormal = vec3.normalize(vec3.cross([...tangent], normal));
 
-  if (isTypedArray) {
+  if (isFlatArray) {
     geometry.normals.set(normal);
     geometry.binormals.set(binormal);
   } else {
@@ -66,7 +66,7 @@ function frenetSerretFrames(geometry, options) {
   let previousTangent = vec3.create();
 
   for (let i = 1; i < size; i++) {
-    if (isTypedArray) {
+    if (isFlatArray) {
       avec3.set(previousTangent, 0, geometry.tangents, i - 1);
       avec3.set(tangent, 0, geometry.tangents, i);
     } else {
@@ -90,7 +90,7 @@ function frenetSerretFrames(geometry, options) {
     }
     binormal = vec3.cross([...tangent], normal);
 
-    if (isTypedArray) {
+    if (isFlatArray) {
       avec3.set(geometry.normals, i, normal, 0);
       avec3.set(geometry.binormals, i, binormal, 0);
     } else {
@@ -100,13 +100,13 @@ function frenetSerretFrames(geometry, options) {
   }
 
   if (closed) {
-    const firstNormal = isTypedArray
+    const firstNormal = isFlatArray
       ? geometry.normals.slice(0, 3)
       : geometry.normals[0];
-    const lastNormal = isTypedArray
+    const lastNormal = isFlatArray
       ? geometry.normals.slice(-3)
       : geometry.normals.at(-1);
-    const firstTangent = isTypedArray
+    const firstTangent = isFlatArray
       ? geometry.tangents.slice(0, 3)
       : geometry.tangents[0];
 
@@ -120,7 +120,7 @@ function frenetSerretFrames(geometry, options) {
     }
 
     for (let i = 0; i < size; i++) {
-      if (isTypedArray) {
+      if (isFlatArray) {
         avec3.set(tangent, 0, geometry.tangents, i);
         avec3.set(normal, 0, geometry.normals, i);
         avec3.set(binormal, 0, geometry.binormals, i);

@@ -3,12 +3,10 @@ import frenetSerretFrames from "../index.js";
 import { avec3, vec3, mat4, avec4 } from "pex-math";
 import createContext from "pex-context";
 import { perspective as createCamera, orbiter as createOrbiter } from "pex-cam";
-import TweakPane from "tweakpane";
-
-const { Pane } = TweakPane;
+import { Pane } from "tweakpane";
 
 const CONFIG = {
-  geometry: "torus",
+  geometry: "torusKnot",
   closed: true,
   showFrames: true,
   showPath: true,
@@ -16,8 +14,8 @@ const CONFIG = {
 
 const count = 50;
 const geometries = {
-  torus: { positions: new Float32Array(count * 3) },
-  torusChunked: { positions: [] },
+  torusKnot: { positions: new Float32Array(count * 3) },
+  torusKnotChunked: { positions: [] },
   helix: { positions: new Float32Array(count * 3) },
   helixChunked: { positions: [] },
   circle: { positions: new Float32Array(count * 3) },
@@ -36,8 +34,8 @@ for (let i = 0; i < count; i++) {
     4 * Math.sin(3 * t) * Math.sin((5 * t) / 2) +
     4 * Math.sin(4 * t) -
     2 * Math.sin(6 * t);
-  geometries.torus.positions.set([x * s, y * s, z * s], i * 3);
-  geometries.torusChunked.positions.push([x * s, y * s, z * s]);
+  geometries.torusKnot.positions.set([x * s, y * s, z * s], i * 3);
+  geometries.torusKnotChunked.positions.push([x * s, y * s, z * s]);
 }
 
 // Create helix
@@ -75,19 +73,19 @@ Object.values(geometries).forEach((geometry) => {
         vec3.addScaled(
           vec3.copy(position),
           geometry.tangents[index],
-          frameScale
+          frameScale,
         ),
         position,
         vec3.addScaled(
           vec3.copy(position),
           geometry.normals[index],
-          frameScale
+          frameScale,
         ),
         position,
         vec3.addScaled(
           vec3.copy(position),
           geometry.binormals[index],
-          frameScale
+          frameScale,
         ),
       ])
       .flat();
@@ -112,19 +110,19 @@ Object.values(geometries).forEach((geometry) => {
         vec3.addScaled(
           vec3.copy(position),
           closedGeometry.tangents[index],
-          frameScale
+          frameScale,
         ),
         position,
         vec3.addScaled(
           vec3.copy(position),
           closedGeometry.normals[index],
-          frameScale
+          frameScale,
         ),
         position,
         vec3.addScaled(
           vec3.copy(position),
           closedGeometry.binormals[index],
-          frameScale
+          frameScale,
         ),
       ])
       .flat();
@@ -150,7 +148,7 @@ Object.values(geometries).forEach((geometry) => {
       i * 6 + 1,
       geometry.tangents,
       i,
-      frameScale
+      frameScale,
     );
     avec3.set(geometry.tnbBuffer, i * 6 + 2, geometry.positions, i);
     avec3.set(geometry.tnbBuffer, i * 6 + 3, geometry.positions, i);
@@ -159,7 +157,7 @@ Object.values(geometries).forEach((geometry) => {
       i * 6 + 3,
       geometry.normals,
       i,
-      frameScale
+      frameScale,
     );
     avec3.set(geometry.tnbBuffer, i * 6 + 4, geometry.positions, i);
     avec3.set(geometry.tnbBuffer, i * 6 + 5, geometry.positions, i);
@@ -168,7 +166,7 @@ Object.values(geometries).forEach((geometry) => {
       i * 6 + 5,
       geometry.binormals,
       i,
-      frameScale
+      frameScale,
     );
 
     avec3.set(geometry.tnbClosedBuffer, i * 6, closedGeometry.positions, i);
@@ -178,7 +176,7 @@ Object.values(geometries).forEach((geometry) => {
       i * 6 + 1,
       closedGeometry.tangents,
       i,
-      frameScale
+      frameScale,
     );
     avec3.set(geometry.tnbClosedBuffer, i * 6 + 2, closedGeometry.positions, i);
     avec3.set(geometry.tnbClosedBuffer, i * 6 + 3, closedGeometry.positions, i);
@@ -187,7 +185,7 @@ Object.values(geometries).forEach((geometry) => {
       i * 6 + 3,
       closedGeometry.normals,
       i,
-      frameScale
+      frameScale,
     );
     avec3.set(geometry.tnbClosedBuffer, i * 6 + 4, closedGeometry.positions, i);
     avec3.set(geometry.tnbClosedBuffer, i * 6 + 5, closedGeometry.positions, i);
@@ -196,7 +194,7 @@ Object.values(geometries).forEach((geometry) => {
       i * 6 + 5,
       closedGeometry.binormals,
       i,
-      frameScale
+      frameScale,
     );
 
     avec4.set(geometry.colorBuffer, i * 6 + 0, [1, 0, 0, 1], 0);
@@ -335,11 +333,11 @@ const updateGeometry = () => {
 updateGeometry();
 
 let pane = new Pane();
-pane.addInput(CONFIG, "closed").on("change", () => updateGeometry());
-pane.addInput(CONFIG, "showFrames");
-pane.addInput(CONFIG, "showPath");
+pane.addBinding(CONFIG, "closed").on("change", () => updateGeometry());
+pane.addBinding(CONFIG, "showFrames");
+pane.addBinding(CONFIG, "showPath");
 pane
-  .addInput(CONFIG, "geometry", {
+  .addBinding(CONFIG, "geometry", {
     options: Object.keys(geometries).map((value) => ({
       text: value.toUpperCase(),
       value,

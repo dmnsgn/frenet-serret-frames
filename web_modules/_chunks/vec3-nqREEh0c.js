@@ -267,4 +267,4 @@ var vec3 = /*#__PURE__*/Object.freeze({
   toString: toString
 });
 
-export { sub as a, copy as b, cross as c, dot as d, add as e, scale as f, create as g, distance as h, length as l, multMat4 as m, normalize as n, set as s, vec3 as v };
+export { set as a, add as b, copy as c, dot as d, scale as e, create as f, distance as g, length as l, multMat4 as m, normalize as n, sub as s, vec3 as v };

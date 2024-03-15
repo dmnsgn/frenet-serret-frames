@@ -44,8 +44,17 @@
  * @param {number} outStart
  * @param {number} outEnd
  * @returns {number}
- */ function map(n, inStart, inEnd, outStart, outEnd) {
+ */ function remap(n, inStart, inEnd, outStart, outEnd) {
     return outStart + (outEnd - outStart) * (n - inStart) / (inEnd - inStart);
+}
+/**
+ * @deprecated Use "remap()"
+ * @ignore
+ */ function map() {
+    for(var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++){
+        args[_key] = arguments[_key];
+    }
+    return remap(...args);
 }
 /**
  * Transforms degrees into radians.
@@ -60,13 +69,6 @@
  * @returns {import("./types.js").Degrees}
  */ function toDegrees(radians) {
     return radians * 180 / Math.PI;
-}
-/**
- * Returns the sign of a number.
- * @param {number} n
- * @returns {number}
- */ function sign(n) {
-    return n / Math.abs(n);
 }
 /**
  * Check if a number is a power of two
@@ -89,6 +91,14 @@
     n |= n >> 16;
     return n + 1;
 }
+/**
+ * Returns the previous power of two.
+ * @param {number} n
+ * @returns {number}
+ */ function prevPowerOfTwo(n) {
+    if (n <= 1) return 0;
+    return nextPowerOfTwo(n) / 2;
+}
 
 var utils = /*#__PURE__*/Object.freeze({
   __proto__: null,
@@ -99,7 +109,8 @@ var utils = /*#__PURE__*/Object.freeze({
   lerp: lerp$1,
   map: map,
   nextPowerOfTwo: nextPowerOfTwo,
-  sign: sign,
+  prevPowerOfTwo: prevPowerOfTwo,
+  remap: remap,
   smoothstep: smoothstep,
   toDegrees: toDegrees,
   toRadians: toRadians
@@ -701,19 +712,15 @@ var utils = /*#__PURE__*/Object.freeze({
     return a;
 }
 /**
- * Sets a matrix from a vector to another.
+ * Sets a matrix from a direction.
+ * Note: we assume +Z facing models.
  * @param {import("./types.js").mat4} a
- * @param {import("./types.js").vec3} from
- * @param {import("./types.js").vec3} to
+ * @param {import("./types.js").vec3} direction
  * @param {import("./types.js").vec3} [up=Y_UP]
  * @returns {import("./types.js").mat4}
- */ function targetTo(a, param, param1, param2) {
-    let [eyex, eyey, eyez] = param;
-    let [targetx, targety, targetz] = param1;
-    let [upx, upy, upz] = param2 === void 0 ? Y_UP : param2;
-    let z0 = eyex - targetx;
-    let z1 = eyey - targety;
-    let z2 = eyez - targetz;
+ */ function fromDirection(a, param, param1) {
+    let [z0, z1, z2] = param;
+    let [upx, upy, upz] = param1 === void 0 ? Y_UP : param1;
     let len = z0 * z0 + z1 * z1 + z2 * z2;
     if (len > 0) {
         len = 1 / Math.sqrt(len);
@@ -731,23 +738,49 @@ var utils = /*#__PURE__*/Object.freeze({
         x1 *= len;
         x2 *= len;
     }
+    upx = z1 * x2 - z2 * x1;
+    upy = z2 * x0 - z0 * x2;
+    upz = z0 * x1 - z1 * x0;
+    len = upx * upx + upy * upy + upz * upz;
+    if (len > 0) {
+        len = 1 / Math.sqrt(len);
+        upx *= len;
+        upy *= len;
+        upz *= len;
+    }
     a[0] = x0;
     a[1] = x1;
     a[2] = x2;
     a[3] = 0;
-    a[4] = z1 * x2 - z2 * x1;
-    a[5] = z2 * x0 - z0 * x2;
-    a[6] = z0 * x1 - z1 * x0;
+    a[4] = upx;
+    a[5] = upy;
+    a[6] = upz;
     a[7] = 0;
     a[8] = z0;
     a[9] = z1;
     a[10] = z2;
     a[11] = 0;
-    a[12] = eyex;
-    a[13] = eyey;
-    a[14] = eyez;
+    a[12] = 0;
+    a[13] = 0;
+    a[14] = 0;
     a[15] = 1;
     return a;
+}
+/**
+ * Sets a matrix from a point to another.
+ * @param {import("./types.js").mat4} a
+ * @param {import("./types.js").vec3} from
+ * @param {import("./types.js").vec3} to
+ * @param {import("./types.js").vec3} [up=Y_UP]
+ * @returns {import("./types.js").mat4}
+ */ function fromPointToPoint(a, param, param1, up) {
+    let [fromX, fromY, fromZ] = param;
+    let [toX, toY, toZ] = param1;
+    return fromDirection(a, [
+        toX - fromX,
+        toY - fromY,
+        toZ - fromZ
+    ], up);
 }
 
 var mat4 = /*#__PURE__*/Object.freeze({
@@ -755,7 +788,9 @@ var mat4 = /*#__PURE__*/Object.freeze({
   copy: copy$1,
   create: create$1,
   equals: equals$1,
+  fromDirection: fromDirection,
   fromMat3: fromMat3,
+  fromPointToPoint: fromPointToPoint,
   fromQuat: fromQuat,
   fromTranslationRotationScale: fromTranslationRotationScale,
   frustum: frustum,
@@ -768,13 +803,12 @@ var mat4 = /*#__PURE__*/Object.freeze({
   rotate: rotate,
   scale: scale$1,
   set: set$1,
-  targetTo: targetTo,
   translate: translate,
   transpose: transpose
 });
 
 /** @module vec2 */ /**
- * Returns a new vec2 at 0, 0, 0.
+ * Returns a new vec2 at 0, 0.
  * @returns {import("./types.js").vec2}
  */ function create() {
     return [
@@ -970,4 +1004,4 @@ var vec2 = /*#__PURE__*/Object.freeze({
   toString: toString
 });
 
-export { EPSILON as E, clamp as a, toDegrees as b, create$1 as c, toRadians as d, lerp$1 as e, frustum as f, distance as g, invert as i, lookAt as l, mat4 as m, ortho as o, perspective as p, set$1 as s, targetTo as t, utils as u, vec2 as v };
+export { EPSILON as E, clamp as a, toRadians as b, create$1 as c, lerp$1 as d, distance as e, frustum as f, create as g, fromDirection as h, invert as i, fromPointToPoint as j, lookAt as l, mat4 as m, ortho as o, perspective as p, set$1 as s, toDegrees as t, utils as u, vec2 as v };

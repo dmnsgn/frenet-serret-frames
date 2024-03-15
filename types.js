@@ -7,21 +7,21 @@
 
 /**
  * @typedef {object} SimplicialComplex Geometry definition.
- * @property {Float32Array | vec3[]} positions
- * @property {Float32Array | vec3[]} [tangents]
- * @property {Float32Array | vec3[]} [normals]
- * @property {Float32Array | vec2[]} [uvs]
- * @property {(Uint8Array | Uint16Array | Uint32Array | vec3[])} [cells]
+ * @property {Float32Array | Array | vec3[]} positions
+ * @property {Float32Array | Array | vec3[]} [tangents]
+ * @property {Float32Array | Array | vec3[]} [normals]
+ * @property {Float32Array | Array | vec2[]} [uvs]
+ * @property {(Uint8Array | Uint16Array | Uint32Array | Array | vec3[])} [cells]
  */
 
 /**
- * @typedef {object} SimplicialComplexWithTNB Geometry definition augmented with tangent, normals and binormals.
- * @property {Float32Array | vec3[]} positions
- * @property {Float32Array | vec3[]} tangents
- * @property {Float32Array | vec3[]} normals
- * @property {Float32Array | vec3[]} binormals
- * @property {Float32Array | vec2[]} [uvs]
- * @property {(Uint8Array | Uint16Array | Uint32Array | vec3[])} [cells]
+ * @typedef {object} SimplicialComplexWithTNB Geometry definition augmented with tangents, normals and binormals.
+ * @property {Float32Array | Array | vec3[]} positions
+ * @property {Float32Array | Array | vec3[]} tangents
+ * @property {Float32Array | Array | vec3[]} normals
+ * @property {Float32Array | Array | vec3[]} binormals
+ * @property {Float32Array | Array | vec2[]} [uvs]
+ * @property {(Uint8Array | Uint16Array | Uint32Array | Array | vec3[])} [cells]
  */
 
 /**

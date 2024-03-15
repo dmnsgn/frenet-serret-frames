@@ -1,6 +1,6 @@
-import { c as create, l as lookAt, s as set, i as invert, f as frustum, p as perspective$1, o as ortho, a as clamp, b as toDegrees, d as toRadians, e as lerp$2, g as distance$1 } from './_chunks/vec2-9b2f2013.js';
-import { n as normalize, m as multMat4, a as sub, s as set$1, d as dot, e as add, f as scale, g as create$1, b as copy, h as distance, l as length } from './_chunks/vec3-cda63e3a.js';
-import { g as getDefaultExportFromCjs } from './_chunks/_commonjsHelpers-21e21f9f.js';
+import { c as create, l as lookAt, s as set, i as invert, f as frustum, p as perspective$1, o as ortho, a as clamp, t as toDegrees, b as toRadians, d as lerp$2, e as distance$1 } from './_chunks/vec2-B7fZqi_I.js';
+import { n as normalize, m as multMat4, s as sub, a as set$1, d as dot, b as add, e as scale, f as create$1, c as copy, g as distance, l as length } from './_chunks/vec3-nqREEh0c.js';
+import { g as getDefaultExportFromCjs } from './_chunks/_commonjsHelpers-BFTU3MAI.js';
 
 /**
  * An interface for cameras to extend
