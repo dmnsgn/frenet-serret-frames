@@ -11,7 +11,8 @@ import { s as set, a as sub, n as normalize } from './_chunks/avec3-C97cZISE.js'
  * @returns {TypedArray | Array | vec3[]}
  */ const pathTangents = (path, closed)=>{
     if (closed === void 0) closed = false;
-    const isFlatArray = !path[0]?.length;
+    var _path_;
+    const isFlatArray = !((_path_ = path[0]) == null ? void 0 : _path_.length);
     if (isFlatArray) {
         const size = path.length / 3;
         const tangents = new Float32Array(size * 3);

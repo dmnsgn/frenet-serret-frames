@@ -14,7 +14,7 @@
     webgpu: []
 };
 /**
- * @typedef {Object} Options Options for context creation. All optional.
+ * @typedef {object} Options Options for context creation. All optional.
  * @property {number} [width=window.innerWidth] Request an initial canvas width.
  * @property {number} [height=window.innerHeight] Request an initial canvas height.
  * @property {boolean} [pixelRatio=1] Multiply canvas dimensions with a given ratio.
@@ -29,7 +29,7 @@
  */ function createRenderingContext(opts) {
     if (opts === void 0) opts = {};
     // Get options and set defaults
-    const { width =window.innerWidth , height =window.innerHeight , pixelRatio =1 , fullscreen =!opts.width && !opts.height , type ="webgl" , element =document.body , ...contextAttributes } = {
+    const { width = window.innerWidth, height = window.innerHeight, pixelRatio = 1, fullscreen = !opts.width && !opts.height, type = "webgl", element = document.body, ...contextAttributes } = {
         ...opts
     };
     const canvas = opts.canvas || document.createElement("canvas");
@@ -91,20 +91,22 @@ const checkProps = (allowedProps, obj)=>Object.keys(obj).forEach((prop)=>{
 const isWebGL2 = (gl)=>typeof WebGL2RenderingContext !== "undefined" && gl instanceof WebGL2RenderingContext;
 // State and gl
 function compareFBOAttachments(framebuffer, passOpts) {
-    const fboDepthAttachment = framebuffer.depth?.texture;
-    const passDepthAttachment = passOpts.depth?.texture || passOpts.depth;
+    var _framebuffer_depth, _passOpts_depth;
+    const fboDepthAttachment = (_framebuffer_depth = framebuffer.depth) == null ? void 0 : _framebuffer_depth.texture;
+    const passDepthAttachment = ((_passOpts_depth = passOpts.depth) == null ? void 0 : _passOpts_depth.texture) || passOpts.depth;
     if (fboDepthAttachment != passDepthAttachment) return false;
     if (framebuffer.color.length != passOpts.color.length) return false;
     for(let i = 0; i < framebuffer.color.length; i++){
-        const fboColorAttachment = framebuffer.color[i]?.texture;
-        const passColorAttachment = passOpts.color[i]?.texture || passOpts.color[i];
+        var _framebuffer_color_i, _passOpts_color_i;
+        const fboColorAttachment = (_framebuffer_color_i = framebuffer.color[i]) == null ? void 0 : _framebuffer_color_i.texture;
+        const passColorAttachment = ((_passOpts_color_i = passOpts.color[i]) == null ? void 0 : _passOpts_color_i.texture) || passOpts.color[i];
         if (fboColorAttachment != passColorAttachment) return false;
     }
     return true;
 }
 function enableVertexData(ctx, vertexLayout, cmd, updateState) {
     const gl = ctx.gl;
-    const { attributes ={} , indices  } = cmd;
+    const { attributes = {}, indices } = cmd;
     for(let i = 0; i < ctx.capabilities.maxVertexAttribs; i++){
         ctx.state.activeAttributes[i] = null;
         gl.disableVertexAttribArray(i);
@@ -150,7 +152,17 @@ function enableVertexData(ctx, vertexLayout, cmd, updateState) {
         } else {
             gl.enableVertexAttribArray(location);
             if (updateState) ctx.state.activeAttributes[location] = buffer;
-            gl.vertexAttribPointer(location, size, attrib.type || buffer.type, attrib.normalized || false, attrib.stride || 0, attrib.offset || 0);
+            let offset = attrib.offset || 0;
+            const type = attrib.type || buffer.type;
+            // Instanced Base fallback
+            if (!ctx.capabilities.drawInstancedBase && (cmd.baseInstance || cmd.baseVertex)) {
+                if (indices) {
+                    offset += (attrib.divisor ? cmd.baseInstance : cmd.baseVertex) * size * ctx.DataTypeConstructor[type].BYTES_PER_ELEMENT;
+                } else {
+                    if (attrib.divisor) offset += cmd.count * cmd.baseInstance / size;
+                }
+            }
+            gl.vertexAttribPointer(location, size, type, attrib.normalized || false, attrib.stride || 0, offset);
             gl.vertexAttribDivisor(location, attrib.divisor || 0);
         }
     // TODO: how to match index with vertexLayout location?
@@ -168,17 +180,136 @@ function enableVertexData(ctx, vertexLayout, cmd, updateState) {
         gl.bindBuffer(indexBuffer.target, indexBuffer.handle);
     }
 }
+function drawElements(ctx, cmd, instanced, primitive) {
+    var _cmd_indices, _cmd_vertexArray_indices, _cmd_vertexArray, _cmd_indices1, _cmd_vertexArray_indices1, _cmd_vertexArray1;
+    const gl = ctx.gl;
+    // TODO: is that always correct
+    const count = cmd.count || ctx.state.indexBuffer.length;
+    const offset = ((_cmd_indices = cmd.indices) == null ? void 0 : _cmd_indices.offset) || ((_cmd_vertexArray = cmd.vertexArray) == null ? void 0 : (_cmd_vertexArray_indices = _cmd_vertexArray.indices) == null ? void 0 : _cmd_vertexArray_indices.offset) || 0;
+    const type = ((_cmd_indices1 = cmd.indices) == null ? void 0 : _cmd_indices1.type) || ((_cmd_vertexArray1 = cmd.vertexArray) == null ? void 0 : (_cmd_vertexArray_indices1 = _cmd_vertexArray1.indices) == null ? void 0 : _cmd_vertexArray_indices1.offset) || ctx.state.indexBuffer.type;
+    // Instanced drawing
+    if (instanced) {
+        if (cmd.multiDraw) {
+            if (ctx.capabilities.multiDraw) {
+                // Multidraw elements instanced base
+                if (ctx.capabilities.multiDrawInstancedBase && (cmd.multiDraw.baseVertices || cmd.multiDraw.baseInstances)) {
+                    const ext = gl.getExtension("WEBGL_multi_draw_instanced_base_vertex_base_instance");
+                    ext.multiDrawElementsInstancedBaseVertexBaseInstanceWEBGL(primitive, cmd.multiDraw.counts, cmd.multiDraw.countsOffset || 0, type, cmd.multiDraw.offsets, cmd.multiDraw.offsetsOffset || 0, cmd.multiDraw.instanceCounts, cmd.multiDraw.instanceCountsOffset || 0, cmd.multiDraw.baseVertices || [], cmd.multiDraw.baseVerticesOffset || 0, cmd.multiDraw.baseInstances || [], cmd.multiDraw.baseInstancesOffset || 0, cmd.multiDraw.drawCount || cmd.multiDraw.counts.length);
+                } else {
+                    // Multidraw elements instanced (or multidraw base fallback with offset from enableVertexData)
+                    const ext = gl.getExtension("WEBGL_multi_draw");
+                    // TODO: fallback
+                    if (cmd.multiDraw.baseVertices || cmd.multiDraw.baseInstances) {
+                        console.error("Unsupported multiDrawInstancedBase. No fallback.");
+                    }
+                    ext.multiDrawElementsInstancedWEBGL(primitive, cmd.multiDraw.counts, cmd.multiDraw.countsOffset || 0, type, cmd.multiDraw.offsets, cmd.multiDraw.offsetsOffset || 0, cmd.multiDraw.instanceCounts, cmd.multiDraw.instanceCountsOffset || 0, cmd.multiDraw.drawCount || cmd.multiDraw.counts.length);
+                }
+            } else {
+                // Multi draw elements instanced fallback
+                // TODO: fallback
+                console.error("Unsupported multidraw. No fallback.");
+            }
+        } else {
+            // Non-multi drawing
+            if (ctx.capabilities.drawInstancedBase && (Number.isFinite(cmd.baseVertex) || Number.isFinite(cmd.baseInstance))) {
+                // Draw elements instanced base
+                const ext = gl.getExtension("WEBGL_draw_instanced_base_vertex_base_instance");
+                ext.drawElementsInstancedBaseVertexBaseInstanceWEBGL(primitive, count, type, offset, cmd.instances, cmd.baseVertex || 0, cmd.baseInstance || 0);
+            } else {
+                // Draw elements instanced (or base fallback with offset from enableVertexData)
+                gl.drawElementsInstanced(primitive, count, type, offset, cmd.instances);
+            }
+        }
+    } else {
+        // Non instanced drawing
+        if (cmd.multiDraw) {
+            if (ctx.capabilities.multiDraw) {
+                // Multidraw elements
+                const ext = gl.getExtension("WEBGL_multi_draw");
+                ext.multiDrawElementsWEBGL(primitive, cmd.multiDraw.counts, cmd.multiDraw.countsOffset || 0, type, cmd.multiDraw.offsets, cmd.multiDraw.offsetsOffset || 0, cmd.multiDraw.drawCount || cmd.multiDraw.counts.length);
+            } else {
+                // Multidraw elements fallback
+                const countsOffset = cmd.multiDraw.countsOffset || 0;
+                const offsetsOffset = cmd.multiDraw.offsetsOffset || 0;
+                const drawCount = cmd.multiDraw.drawCount || cmd.multiDraw.counts.length;
+                for(let i = 0; i < drawCount; i++){
+                    gl.drawElements(primitive, cmd.multiDraw.counts[i + countsOffset], type, cmd.multiDraw.offsets[i + offsetsOffset]);
+                }
+            }
+        } else {
+            // Draw elements
+            gl.drawElements(primitive, count, type, offset);
+        }
+    }
+}
+function drawArrays(ctx, cmd, instanced, primitive) {
+    const gl = ctx.gl;
+    if (instanced) {
+        if (cmd.multiDraw && ctx.capabilities.multiDraw) {
+            if (cmd.multiDraw.baseInstances && ctx.capabilities.multiDrawInstancedBase) {
+                const ext = gl.getExtension("WEBGL_multi_draw_instanced_base_vertex_base_instance");
+                ext.multiDrawArraysInstancedBaseInstanceWEBGL(primitive, cmd.multiDraw.firsts, cmd.multiDraw.firstsOffset || 0, cmd.multiDraw.counts, cmd.multiDraw.countsOffset || 0, cmd.multiDraw.instanceCounts, cmd.multiDraw.instanceCountsOffset || 0, cmd.multiDraw.baseInstances, cmd.multiDraw.baseInstancesOffset || 0, cmd.multiDraw.drawCount || cmd.multiDraw.firsts.length);
+            } else {
+                const ext = gl.getExtension("WEBGL_multi_draw");
+                ext.multiDrawArraysInstancedWEBGL(primitive, cmd.multiDraw.firsts, cmd.multiDraw.firstsOffset || 0, cmd.multiDraw.counts, cmd.multiDraw.countsOffset || 0, cmd.multiDraw.instanceCounts, cmd.multiDraw.instanceCountsOffset || 0, cmd.multiDraw.drawCount || cmd.multiDraw.firsts.length);
+            }
+        } else {
+            // Non-multi drawing
+            if (ctx.capabilities.drawInstancedBase && Number.isFinite(cmd.baseInstance)) {
+                // Draw arrays instanced with base instance
+                const ext = gl.getExtension("WEBGL_draw_instanced_base_vertex_base_instance");
+                ext.drawArraysInstancedBaseInstanceWEBGL(primitive, cmd.first || 0, cmd.count, cmd.instances, cmd.baseInstance);
+            } else {
+                // Draw arrays instanced (or base instance fallback)
+                gl.drawArraysInstanced(primitive, cmd.first || 0, cmd.count, cmd.instances);
+            }
+        }
+    } else {
+        // Non instanced drawing
+        if (cmd.multiDraw) {
+            // Multidraw arrays
+            if (ctx.capabilities.multiDraw) {
+                const ext = gl.getExtension("WEBGL_multi_draw");
+                ext.multiDrawArraysWEBGL(primitive, cmd.multiDraw.firsts, cmd.multiDraw.firstsOffset || 0, cmd.multiDraw.counts, cmd.multiDraw.countsOffset || 0, cmd.multiDraw.drawCount || cmd.multiDraw.firsts.length);
+            } else {
+                // Multidraw arrays fallback
+                const firstsOffset = cmd.multiDraw.firstsOffset || 0;
+                const countsOffset = cmd.multiDraw.countsOffset || 0;
+                const drawCount = cmd.multiDraw.drawCount || cmd.multiDraw.firsts.length;
+                for(let i = 0; i < drawCount; i++){
+                    gl.drawArrays(primitive, cmd.multiDraw.firsts[i + firstsOffset], cmd.multiDraw.counts[i + countsOffset]);
+                }
+            }
+        } else {
+            // Draw arrays
+            gl.drawArrays(primitive, cmd.first || 0, cmd.count);
+        }
+    }
+}
+function draw(ctx, cmd) {
+    var _cmd_vertexArray, _cmd_multiDraw;
+    const instanced = Object.values(cmd.attributes || cmd.vertexArray.attributes).some((attrib)=>attrib.divisor);
+    const primitive = cmd.pipeline.primitive;
+    // Draw elements/arrays: instanced, base, multi-draw
+    if (cmd.indices || ((_cmd_vertexArray = cmd.vertexArray) == null ? void 0 : _cmd_vertexArray.indices)) {
+        drawElements(ctx, cmd, instanced, primitive);
+    } else if (cmd.count || ((_cmd_multiDraw = cmd.multiDraw) == null ? void 0 : _cmd_multiDraw.counts)) {
+        drawArrays(ctx, cmd, instanced, primitive);
+    } else {
+        throw new Error("Vertex arrays requires elements, count or multiDraw");
+    }
+}
 
 /**
  * @typedef {HTMLImageElement | HTMLVideoElement | HTMLCanvasElement} TextureOptionsData
- * @property {Array|TypedArray} data
+ * @property {Array|import("./types.js").TypedArray} data
  * @property {number} width
  * @property {number} height
  */ /**
  * @typedef {WebGLRenderingContext.TEXTURE_2D | WebGLRenderingContext.TEXTURE_CUBE_MAP} TextureTarget
  */ /**
  * @typedef {import("./types.js").PexResource} TextureOptions
- * @property {HTMLImageElement | HTMLVideoElement | HTMLCanvasElement | Array | TypedArray |TextureOptionsData | HTMLImageElement[] | TextureOptionsData[]} [data]
+ * @property {HTMLImageElement | HTMLVideoElement | HTMLCanvasElement | Array | import("./types.js").TypedArray |TextureOptionsData | HTMLImageElement[] | TextureOptionsData[]} [data]
  * @property {number} [width]
  * @property {number} [height]
  * @property {ctx.PixelFormat} [pixelFormat=ctx.PixelFormat.RGB8]
@@ -197,8 +328,9 @@ function enableVertexData(ctx, vertexLayout, cmd, updateState) {
  * @property {boolean} [compressed=false]
  * @property {TextureTarget} [target]
  */ /**
- * @typedef {TextureCube} TextureCubeOptions
- * @property {HTMLImage[]|TypedArray[]} [data] 6 images, one for each face +X, -X, +Y, -Y, +Z, -Z
+ * @typedef {import("./types.js").PexResource} TextureCubeOptions
+ * @augments TextureOptions
+ * @property {HTMLImageElement[]|import("./types.js").TypedArray[]} [data] 6 images, one for each face +X, -X, +Y, -Y, +Z, -Z
  */ const allowedProps$4 = [
     "name",
     "data",
@@ -339,7 +471,7 @@ function updateTexture2D(ctx, texture, opts) {
                 }
             ];
             for(let level = 0; level < data.length; level++){
-                let { data: levelData , width , height  } = data[level];
+                let { data: levelData, width, height } = data[level];
                 // Convert array of numbers to typed array
                 if (Array.isArray(levelData)) {
                     const TypedArray = ctx.DataTypeConstructor[type];
@@ -403,7 +535,7 @@ function updateTexture2D(ctx, texture, opts) {
 }
 
 /**
- * @typedef {Object} Attachment
+ * @typedef {object} Attachment
  * @property {import("./types.js").PexResource} texture
  * @property {WebGLRenderingContext.FRAMEBUFFER} target
  */ function createFramebuffer(ctx, opts) {
@@ -520,8 +652,8 @@ function updateRenderbuffer(ctx, renderbuffer, opts) {
 
 /**
  * @typedef {import("./types.js").PexResource} PassOptions
- * @property {Texture2D[]|import("./framebuffer.js").Attachment[]} [color] render target
- * @property {Texture2D} [depth] render target
+ * @property {import("./types.js").PexTexture2D[]|import("./framebuffer.js").Attachment[]} [color] render target
+ * @property {import("./types.js").PexTexture2D} [depth] render target
  * @property {import("./types.js").Color} [clearColor]
  * @property {number} [clearDepth]
  */ const allowedProps$3 = [
@@ -592,8 +724,6 @@ function createPipeline(ctx, opts) {
     checkProps(allowedProps$2, opts);
     const pipeline = Object.assign({
         class: "pipeline",
-        vert: null,
-        frag: null,
         program: null,
         depthWrite: true,
         depthTest: false,
@@ -645,9 +775,9 @@ function createPipeline(ctx, opts) {
 
 /**
  * @typedef {import("./types.js").PexResource} VertexArrayOptions
- * @property {Object} vertexLayout
- * @property {Object} [attributes]
- * @property {Object} [indices]
+ * @property {object} vertexLayout
+ * @property {object} [attributes]
+ * @property {object} [indices]
  */ function createVertexArray(ctx, opts) {
     const gl = ctx.gl;
     const vertexArray = {
@@ -669,11 +799,11 @@ const TYPE_TO_SIZE = {
 };
 // TODO: can't update attributes/indices as they're in vertexArray
 function updateVertexArray(ctx, vertexArray, param) {
-    let { vertexLayout  } = param;
+    let { vertexLayout } = param;
     const gl = ctx.gl;
     gl.bindVertexArray(vertexArray.handle);
     enableVertexData(ctx, Object.entries(vertexLayout).map((param)=>{
-        let [name, { location , type , size  }] = param;
+        let [name, { location, type, size }] = param;
         return [
             name,
             location,
@@ -683,6 +813,13 @@ function updateVertexArray(ctx, vertexArray, param) {
     gl.bindVertexArray(null);
 }
 
+const builtInAttributes = [
+    "gl_VertexID",
+    "gl_InstanceID",
+    "gl_DrawID",
+    "gl_BaseVertex",
+    "gl_BaseInstance"
+];
 function createProgram(ctx, opts) {
     const gl = ctx.gl;
     const program = {
@@ -722,7 +859,7 @@ function createProgram(ctx, opts) {
     return program;
 }
 function updateProgram(ctx, program, param) {
-    let { vert , frag , vertexLayout  } = param;
+    let { vert, frag, vertexLayout } = param;
     console.assert(typeof vert === "string", "Vertex shader source must be a string");
     console.assert(typeof frag === "string", "Fragment shader source must be a string");
     const gl = ctx.gl;
@@ -797,6 +934,9 @@ function updateAttributes(ctx, program) {
         const info = gl.getActiveAttrib(program.handle, i);
         const name = info.name;
         const size = ctx.AttributeSize[info.type];
+        if (builtInAttributes.includes(name)) {
+            continue;
+        }
         if (size === undefined) {
             throw new Error(`Unknwon uniform type ${info.type} : ${ctx.getGLString(info.type)}`);
         }
@@ -813,18 +953,16 @@ function updateAttributes(ctx, program) {
 
 /**
  * @typedef {import("./types.js").PexResource} BufferOptions
- * @property {Array|TypedArray|ArrayBuffer} data
+ * @property {Array|import("./types.js").TypedArray|ArrayBuffer} data
  * @property {ctx.DataType} [type]
  * @property {ctx.Usage} [usage=ctx.Usage.StaticDraw]
  * @property {number} offset
- * @property {boolean} normalized
  */ const allowedProps$1 = [
     "target",
     "data",
     "usage",
     "type",
-    "offset",
-    "normalized"
+    "offset"
 ];
 function createBuffer(ctx, opts) {
     checkProps(allowedProps$1, opts);
@@ -916,6 +1054,7 @@ function updateBuffer(ctx, buffer, opts) {
     } else {
         gl.bufferData(buffer.target, data, buffer.usage);
     }
+    buffer.info = ctx.DataTypeConstructor[type].name;
 }
 
 /**
@@ -952,7 +1091,7 @@ function createQuery(ctx, opts) {
     return query;
 }
 function begin(param, q) {
-    let { QueryState , gl  } = param;
+    let { QueryState, gl } = param;
     if (q.state !== QueryState.Ready) return false;
     gl.beginQuery(q.target, q.handle);
     q.state = QueryState.Active;
@@ -960,14 +1099,14 @@ function begin(param, q) {
     return true;
 }
 function end(param, q) {
-    let { QueryState , gl  } = param;
+    let { QueryState, gl } = param;
     if (q.state !== QueryState.Active) return false;
     gl.endQuery(q.target);
     q.state = QueryState.Pending;
     return true;
 }
 function available(param, q) {
-    let { gl , QueryState  } = param;
+    let { gl, QueryState } = param;
     const available = gl.getQueryParameter(q.handle, gl.QUERY_RESULT_AVAILABLE);
     if (available) {
         q.result = gl.getQueryParameter(q.handle, gl.QUERY_RESULT);
@@ -979,7 +1118,7 @@ function available(param, q) {
 }
 
 function polyfill(ctx) {
-    const { gl , capabilities  } = ctx;
+    const { gl, capabilities } = ctx;
     if (!gl.HALF_FLOAT) {
         const ext = gl.getExtension("OES_texture_half_float");
         if (ext) gl.HALF_FLOAT = ext.HALF_FLOAT_OES;
@@ -1038,11 +1177,17 @@ function polyfill(ctx) {
     if (!capabilities.isWebGL2) {
         gl.getExtension("OES_element_index_uint");
         gl.getExtension("OES_standard_derivatives");
+        const extsRGB = gl.getExtension("EXT_sRGB");
+        if (extsRGB) {
+            gl.SRGB ||= extsRGB.SRGB_EXT;
+            gl.SRGB8 ||= extsRGB.SRGB_ALPHA_EXT;
+            gl.SRGB8_ALPHA8 ||= extsRGB.SRGB8_ALPHA8_EXT;
+        }
     }
 }
 
 /**
- * @typedef {Object} PexContextOptions
+ * @typedef {object} PexContextOptions
  * @property {WebGLRenderingContext | WebGL2RenderingContext} [gl=WebGL2RenderingContext]
  * @property {number} [width=window.innerWidth]
  * @property {number} [height=window.innerHeight]
@@ -1050,23 +1195,55 @@ function polyfill(ctx) {
  * @property {"webgl" | "webgl2"} [type="webgl2"]
  * @property {boolean} [debug=false]
  */ /**
- * @typedef {Object} PexResource
+ * @typedef {object} PexResource
  * All resources are plain js object and once constructed their properties can be accessed directly.
- * Please note those props are read only. To set new values or upload new data to GPU see [updating resources]{@link context~update}.
+ * Please note those props are read only. To set new values or upload new data to GPU see [updating resources]{@link ctx.update}.
  * @property {string} name
  */ /**
- * @typedef {Object} PexCommand
+ * @typedef {object} PexTexture2D
+ */ /**
+ * @typedef {object} PexAttribute
+ * @property {object} buffer ctx.vertexBuffer() or ctx.indexBuffer()
+ * @property {number} [offset]
+ * @property {number} [stride]
+ * @property {number} [divisor]
+ * @property {boolean} [normalized]
+ */ /**
+ * @typedef {object} PexCommand
  * @property {import("./pass.js").PassOptions} pass
  * @property {import("./pipeline.js").PipelineOptions} pipeline
- * @property {Object} attributes vertex attributes, map of `attibuteName: ctx.VertexBuffer`   or `attributeName: { buffer: VertexBuffer, offset: number, stride: number, divisor: number }`
- * @property {Object} indices indices, `ctx.IndexBuffer` or `{ buffer: IndexBuffer, offset: number, stride: number }`
- * @property {number} count number of vertices to draw
- * @property {number} instances number instances to draw
- * @property {Object} uniforms shader uniforms, map of `name: value`
- * @property {Viewport} viewport drawing viewport bounds
- * @property {Viewport} scissor scissor test bounds
+ * @property {object} [attributes] vertex attributes, map of `attributeName: ctx.vertexBuffer()`  or [`attributeName: PexAttribute`]{@link PexAttribute}
+ * @property {object} [indices] indices, `ctx.indexBuffer()` or [`PexAttribute`]{@link PexAttribute}
+ * @property {number} [count] number of vertices to draw
+ * @property {number} [instances] number instances to draw
+ * @property {object} [uniforms] shader uniforms, map of `name: value`
+ * @property {Viewport} [viewport] drawing viewport bounds
+ * @property {Viewport} [scissor] scissor test bounds
+ * @property {MultiDrawOptions} [multiDraw]
+ * @property {number} [baseVertex]
+ * @property {number} [baseInstance]
  */ /**
- * @typedef {Object} PexContextSetOptions
+ * @typedef {object} MultiDrawOptions
+ * @see [WEBGL_multi_draw extension]{@link https://registry.khronos.org/webgl/extensions/WEBGL_multi_draw/}
+ * @see [WEBGL_draw_instanced_base_vertex_base_instance extension]{@link https://registry.khronos.org/webgl/extensions/WEBGL_draw_instanced_base_vertex_base_instance/}
+ * @see [WEBGL_multi_draw_instanced_base_vertex_base_instance extension]{@link https://registry.khronos.org/webgl/extensions/WEBGL_multi_draw_instanced_base_vertex_base_instance/}
+ *
+ * @property {(Int32Array|Array)} counts
+ * @property {number} [countsOffset]
+ * @property {(Int32Array|Array)} offsets
+ * @property {number} [offsetsOffset]
+ * @property {(Int32Array|Array)} firsts
+ * @property {number} [firstsOffset]
+ * @property {(Int32Array|Array)} instanceCounts
+ * @property {number} [instanceCountsOffset]
+ *
+ * @property {(Int32Array|Array)} baseVertices
+ * @property {number} [baseVerticesOffset]
+ * @property {(UInt32Array|Array)} baseInstances
+ * @property {number} [baseInstancesOffset]
+ * @property {number} [drawCount]
+ */ /**
+ * @typedef {object} PexContextSetOptions
  * @property {number} [width]
  * @property {number} [height]
  * @property {number} [pixelRatio]
@@ -1074,8 +1251,10 @@ function polyfill(ctx) {
  * @typedef {number[]} Viewport [x, y, w, h]
  */ /**
  * @typedef {number[]} Color [r, g, b, a]
+ */ /**
+ * @typedef {(Int8Array|Uint8Array|Uint8ClampedArray|Int16Array|Uint16Array|Int32Array|Uint32Array|Float32Array|Float64Array|BigInt64Array|BigUint64Array)} TypedArray
  */ const addEnums = (ctx)=>{
-    const { gl , capabilities  } = ctx;
+    const { gl, capabilities } = ctx;
     /** @enum */ ctx.BlendFactor = {
         One: gl.ONE,
         Zero: gl.ZERO,
@@ -1257,11 +1436,11 @@ function polyfill(ctx) {
     };
     /**
    * @enum
-   *
+   * @private
    * @description
    * Mapping of format and type (with alternative types).
    */ ctx.TextureFormat = {
-        // Unsized Internal Formats
+        // Unsized internal formats
         RGB: [
             gl.RGB,
             ctx.DataType.Uint8
@@ -1283,90 +1462,35 @@ function polyfill(ctx) {
             ctx.DataType.Uint8
         ],
         // Sized internal formats
-        R8: [
-            gl.RED,
-            ctx.DataType.Uint8
-        ],
-        R8_SNORM: [
-            gl.RED,
-            ctx.DataType.Int8
-        ],
-        R16F: [
-            gl.RED,
-            ctx.DataType.Float16
-        ],
-        R32F: [
-            gl.RED,
-            ctx.DataType.Float32
-        ],
-        R8UI: [
-            gl.RED_INTEGER,
-            ctx.DataType.Uint8
-        ],
-        R8I: [
-            gl.RED_INTEGER,
-            ctx.DataType.Int8
-        ],
-        R16UI: [
-            gl.RED_INTEGER,
-            ctx.DataType.Uint16
-        ],
-        R16I: [
-            gl.RED_INTEGER,
-            ctx.DataType.Int16
-        ],
-        R32UI: [
-            gl.RED_INTEGER,
-            ctx.DataType.Uint32
-        ],
-        R32I: [
-            gl.RED_INTEGER,
-            ctx.DataType.Int32
-        ],
-        RG8: [
-            gl.RG,
-            ctx.DataType.Uint8
-        ],
-        RG8_SNORM: [
-            gl.RG,
-            ctx.DataType.Int8
-        ],
-        RG16F: [
-            gl.RG,
-            ctx.DataType.Float16
-        ],
-        RG32F: [
-            gl.RG,
-            ctx.DataType.Float32
-        ],
-        RG8UI: [
-            gl.RG_INTEGER,
-            ctx.DataType.Uint8
-        ],
-        RG8I: [
-            gl.RG_INTEGER,
-            ctx.DataType.Int8
-        ],
-        RG16UI: [
-            gl.RG_INTEGER,
-            ctx.DataType.Uint16
-        ],
-        RG16I: [
-            gl.RG_INTEGER,
-            ctx.DataType.Int16
-        ],
-        RG32UI: [
-            gl.RG_INTEGER,
-            ctx.DataType.Uint32
-        ],
-        RG32I: [
-            gl.RG_INTEGER,
-            ctx.DataType.Int32
-        ],
-        RGB8: [
-            gl.RGB,
-            ctx.DataType.Uint8
-        ],
+        ...Object.fromEntries([
+            "R",
+            "RG",
+            "RGB",
+            "RGBA"
+        ].flatMap((format)=>Object.entries({
+                8: "Uint8",
+                "8_SNORM": "Int8",
+                "16F": "Float16",
+                "32F": "Float32",
+                "8UI": "Uint8",
+                "8I": "Int8",
+                "16UI": "Uint16",
+                "16I": "Int16",
+                "32UI": "Uint32",
+                "32I": "Int32"
+            }).map((param)=>{
+                let [type, DataType] = param;
+                return [
+                    [
+                        `${format}${type}`
+                    ],
+                    [
+                        gl[`${format === "R" ? "RED" : format}${type.endsWith("I") ? "_INTEGER" : ""}`],
+                        ctx.DataType[DataType]
+                    ]
+                ];
+            }))),
+        // Special
         SRGB8: [
             gl.RGB,
             ctx.DataType.Uint8
@@ -1374,10 +1498,6 @@ function polyfill(ctx) {
         RGB565: [
             gl.RGB,
             gl.UNSIGNED_SHORT_5_6_5
-        ],
-        RGB8_SNORM: [
-            gl.RGB,
-            ctx.DataType.Int8
         ],
         R11F_G11F_B10F: [
             gl.RGB,
@@ -1387,49 +1507,9 @@ function polyfill(ctx) {
             gl.RGB,
             gl.UNSIGNED_INT_5_9_9_9_REV
         ],
-        RGB16F: [
-            gl.RGB,
-            ctx.DataType.Float16
-        ],
-        RGB32F: [
-            gl.RGB,
-            ctx.DataType.Float32
-        ],
-        RGB8UI: [
-            gl.RGB_INTEGER,
-            ctx.DataType.Uint8
-        ],
-        RGB8I: [
-            gl.RGB_INTEGER,
-            ctx.DataType.Int8
-        ],
-        RGB16UI: [
-            gl.RGB_INTEGER,
-            ctx.DataType.Uint16
-        ],
-        RGB16I: [
-            gl.RGB_INTEGER,
-            ctx.DataType.Int16
-        ],
-        RGB32UI: [
-            gl.RGB_INTEGER,
-            ctx.DataType.Uint32
-        ],
-        RGB32I: [
-            gl.RGB_INTEGER,
-            ctx.DataType.Int32
-        ],
-        RGBA8: [
-            gl.RGBA,
-            ctx.DataType.Uint8
-        ],
         SRGB8_ALPHA8: [
             gl.RGBA,
             ctx.DataType.Uint8
-        ],
-        RGBA8_SNORM: [
-            gl.RGBA,
-            ctx.DataType.Int8
         ],
         RGB5_A1: [
             gl.RGBA,
@@ -1443,41 +1523,9 @@ function polyfill(ctx) {
             gl.RGBA,
             gl.UNSIGNED_INT_2_10_10_10_REV
         ],
-        RGBA16F: [
-            gl.RGBA,
-            ctx.DataType.Float16
-        ],
-        RGBA32F: [
-            gl.RGBA,
-            ctx.DataType.Float32
-        ],
-        RGBA8UI: [
-            gl.RGBA_INTEGER,
-            ctx.DataType.Uint8
-        ],
-        RGBA8I: [
-            gl.RGBA_INTEGER,
-            ctx.DataType.Int8
-        ],
         RGB10_A2UI: [
             gl.RGBA_INTEGER,
             gl.UNSIGNED_INT_2_10_10_10_REV
-        ],
-        RGBA16UI: [
-            gl.RGBA_INTEGER,
-            ctx.DataType.Uint16
-        ],
-        RGBA16I: [
-            gl.RGBA_INTEGER,
-            ctx.DataType.Int16
-        ],
-        RGBA32I: [
-            gl.RGBA_INTEGER,
-            ctx.DataType.Int32
-        ],
-        RGBA32UI: [
-            gl.RGBA_INTEGER,
-            ctx.DataType.Uint32
         ],
         // Depth and stencil
         DEPTH_COMPONENT16: [
@@ -1521,19 +1569,30 @@ function polyfill(ctx) {
             ctx.DataType.Float32
         ];
     }
+    const legacyPixelFormat = {
+        Depth: "DEPTH_COMPONENT16",
+        Depth16: "DEPTH_COMPONENT16",
+        Depth24: "DEPTH_COMPONENT24"
+    };
     /**
    * @enum
    * @description
    * Mapping of {@link #ctx.TextureFormat|ctx.TextureFormat} keys to their string values and legacy depth formats
+   *
+   * One of:
+   * - Unsized: RGB, RGBA, LUMINANCE_ALPHA, LUMINANCE, ALPHA
+   * - Sized 1 component: R8, R8_SNORM, R16F, R32F, R8UI, R8I, R16UI, R16I, R32UI, R32I
+   * - Sized 2 components: RG8, RG8_SNORM, RG16F, RG32F, RG8UI, RG8I, RG16UI, RG16I, RG32UI, RG32I
+   * - Sized 3 components: RGB8, RGB8_SNORM, RGB16F, RGB32F, RGB8UI, RGB8I, RGB16UI, RGB16I, RGB32UI, RGB32I
+   * - Sized 4 components: RGBA8, RGBA8_SNORM, RGBA16F, RGBA32F, RGBA8UI, RGBA8I, RGBA16UI, RGBA16I, RGBA32UI, RGBA32I
+   * - Sized special: SRGB8, RGB565, R11F_G11F_B10F, RGB9_E5, SRGB8_ALPHA8, RGB5_A1, RGBA4, RGB10_A2, RGB10_A2UI
+   * - Sized depth/stencil: DEPTH_COMPONENT16, DEPTH_COMPONENT24, DEPTH_COMPONENT32F, DEPTH24_STENCIL8, DEPTH32F_STENCIL8
    */ ctx.PixelFormat = {
         ...Object.fromEntries(Object.keys(ctx.TextureFormat).map((internalFormat)=>[
                 internalFormat,
                 internalFormat
             ])),
-        // Legacy
-        Depth: "DEPTH_COMPONENT16",
-        Depth16: "DEPTH_COMPONENT16",
-        Depth24: "DEPTH_COMPONENT24"
+        ...legacyPixelFormat
     };
     const extColorBufferFloat = !!gl.getExtension("EXT_color_buffer_float"); // WebGL2 only
     /** @enum */ ctx.RenderbufferFloatFormat = {
@@ -1568,7 +1627,8 @@ function polyfill(ctx) {
     };
     /** @enum */ ctx.Wrap = {
         ClampToEdge: gl.CLAMP_TO_EDGE,
-        Repeat: gl.REPEAT
+        Repeat: gl.REPEAT,
+        MirroredRepeat: gl.MIRRORED_REPEAT
     };
     /** @enum */ ctx.QueryTarget = {
         TimeElapsed: gl.TIME_ELAPSED,
@@ -1593,6 +1653,10 @@ const allowedCommandProps = [
     "attributes",
     "indices",
     "count",
+    "first",
+    "baseVertex",
+    "baseInstance",
+    "multiDraw",
     "instances",
     "vertexArray",
     "viewport",
@@ -1640,21 +1704,27 @@ const allowedCommandProps = [
             textureHalfFloat: isWebGL2$1 || !!gl.getExtension("OES_texture_half_float"),
             textureHalfFloatLinear: isWebGL2$1 || !!gl.getExtension("OES_texture_half_float_linear"),
             textureFilterAnisotropic: !!gl.getExtension("EXT_texture_filter_anisotropic"),
+            sRGB: isWebGL2$1 || !!gl.getExtension("EXT_sRGB"),
             disjointTimerQuery: !!(gl.getExtension("EXT_disjoint_timer_query_webgl2") || gl.getExtension("EXT_disjoint_timer_query")),
             // Note: supported color buffer types vary
             colorBufferFloat: isWebGL2$1 ? !!gl.getExtension("EXT_color_buffer_float") : !!gl.getExtension("WEBGL_color_buffer_float"),
             colorBufferHalfFloat: !!gl.getExtension("EXT_color_buffer_half_float"),
-            multiDraw: !!gl.getExtension("WEBGL_multi_draw")
+            floatBlend: !!gl.getExtension("EXT_float_blend"),
+            multiDraw: !!gl.getExtension("WEBGL_multi_draw"),
+            drawInstancedBase: !!gl.getExtension("WEBGL_draw_instanced_base_vertex_base_instance"),
+            multiDrawInstancedBase: !!gl.getExtension("WEBGL_multi_draw_instanced_base_vertex_base_instance")
         },
         /**
      * Getter for `gl.drawingBufferWidth`
      * @memberof ctx
+     * @returns {number}
      */ get width () {
             return gl.drawingBufferWidth;
         },
         /**
      * Getter for `gl.drawingBufferHeight`
      * @memberof ctx
+     * @returns {number}
      */ get height () {
             return gl.drawingBufferHeight;
         }
@@ -1689,6 +1759,7 @@ const allowedCommandProps = [
         count: 0
     };
     Object.assign(ctx, {
+        isDisposed: false,
         debugMode: false,
         debugCommands: [],
         resources: [],
@@ -1750,7 +1821,7 @@ const allowedCommandProps = [
      * @memberof ctx
      * @param {import("./types.js").PexContextSetOptions} options
      */ set (param) {
-            let { pixelRatio , width , height  } = param;
+            let { pixelRatio, width, height } = param;
             if (pixelRatio) {
                 this.updatePixelRatio = Math.min(pixelRatio, window.devicePixelRatio);
             }
@@ -1803,7 +1874,7 @@ const allowedCommandProps = [
                     this.defaultState.pass.framebuffer.height = gl.drawingBufferHeight;
                     gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
                 }
-                if (cb() === false) return; // interrupt render loop
+                if (this.isDisposed || cb() === false) return; // interrupt render loop
                 if (this.queries.length) {
                     this.queries = this.queries.filter((q)=>!q._available(this, q));
                 }
@@ -1863,10 +1934,11 @@ const allowedCommandProps = [
      *
      * @memberof ctx
      * @param {import("./types.js").PexCommand} cmd
-     * @param {import("./types.js").PexCommand | import("./types.js").PexCommand[]} [optsBatchesOrSubCommand]
+     * @param {import("./types.js").PexCommand | import("./types.js").PexCommand[]} [batches]
      * @param {import("./types.js").PexCommand} [subCommand]
      */ submit (cmd, batches, subCommand) {
-            const prevFramebufferId = this.state.framebuffer?.id;
+            var _this_state_framebuffer;
+            const prevFramebufferId = (_this_state_framebuffer = this.state.framebuffer) == null ? void 0 : _this_state_framebuffer.id;
             if (this.debugMode) {
                 checkProps(allowedCommandProps, cmd);
                 console.debug(NAMESPACE, "submit", cmd.name || cmd.id, {
@@ -1896,7 +1968,8 @@ const allowedCommandProps = [
             const cmdState = this.mergeCommands(parentState, cmd, false);
             this.apply(cmdState);
             if (this.debugMode) {
-                const currFramebufferId = this.state.framebuffer?.id;
+                var _this_state_framebuffer1;
+                const currFramebufferId = (_this_state_framebuffer1 = this.state.framebuffer) == null ? void 0 : _this_state_framebuffer1.id;
                 const framebufferCanged = prevFramebufferId != currFramebufferId;
                 console.debug(NAMESPACE, "fbo-state", "  ".repeat(this.stack.length), cmd.name, framebufferCanged ? `${prevFramebufferId} -> ${currFramebufferId}` : currFramebufferId, [
                     ...this.state.viewport
@@ -1939,10 +2012,11 @@ const allowedCommandProps = [
      * })
      * ```
      */ pass (opts) {
-            console.debug(NAMESPACE, "pass", opts, opts.color?.map((param)=>{
-                let { texture , info  } = param;
-                return texture?.info || info;
-            }) || "");
+            var _opts_color;
+            console.debug(NAMESPACE, "pass", opts, ((_opts_color = opts.color) == null ? void 0 : _opts_color.map((param)=>{
+                let { texture, info } = param;
+                return (texture == null ? void 0 : texture.info) || info;
+            })) || "");
             return this.resource(createPass(this, opts));
         },
         /**
@@ -1954,17 +2028,17 @@ const allowedCommandProps = [
      *  @example
      * ```js
      * const pipeline = ctx.pipeline({
-     *   vert: String,
-     *   frag: String,
-     *   depthWrite: Boolean,
-     *   depthTest: Boolean,
+     *   vert: string,
+     *   frag: string,
+     *   depthWrite: boolean,
+     *   depthTest: boolean,
      *   depthFunc: DepthFunc,
-     *   blend: Boolean,
+     *   blend: boolean,
      *   blendSrcRGBFactor: BlendFactor,
      *   blendSrcAlphaFactor: BlendFactor,
      *   blendDstRGBFactor: BlendFactor,
      *   blendDstAlphaFactor: BlendFactor,
-     *   cullFace: Boolean,
+     *   cullFace: boolean,
      *   cullFaceMode: Face,
      *   colorMask: Array,
      *   primitive: Primitive
@@ -2032,7 +2106,7 @@ const allowedCommandProps = [
         /**
      * Create a 2D Texture cube resource.
      * @memberof ctx
-     * @param {HTMLImageElement | import("./texture.js").TextureOptions} opts
+     * @param {import("./texture.js").TextureCubeOptions} opts
      * @returns {import("./types.js").PexResource}
      *
      * @example
@@ -2159,7 +2233,7 @@ const allowedCommandProps = [
      * @param {{ x: number, y: number, width: number, height: number }} viewport
      * @returns {Uint8Array}
      */ readPixels (param) {
-            let { x =0 , y =0 , width , height  } = param;
+            let { x = 0, y = 0, width, height } = param;
             const pixels = new Uint8Array(width * height * 4);
             gl.readPixels(x, y, width, height, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
             return pixels;
@@ -2168,7 +2242,7 @@ const allowedCommandProps = [
      * Update a resource.
      * @memberof ctx
      * @param {import("./types.js").PexResource} resource
-     * @param {Object} opts
+     * @param {object} opts
      *
      * @example
      * ```js
@@ -2219,6 +2293,7 @@ const allowedCommandProps = [
                 this.stats[resource.class].alive--;
                 resource._dispose();
             } else {
+                this.isDisposed = true;
                 while(this.resources.length){
                     this.dispose(this.resources[0]);
                 }
@@ -2375,7 +2450,7 @@ const allowedCommandProps = [
         },
         applyUniforms (uniforms, cmd) {
             const gl = this.gl;
-            const { program , activeTextures  } = this.state;
+            const { program, activeTextures } = this.state;
             if (!program) {
                 throw new Error("Trying to draw without an active program");
             }
@@ -2433,7 +2508,7 @@ const allowedCommandProps = [
             this.checkError();
         },
         drawVertexData (cmd) {
-            const { vertexLayout , program , vertexArray  } = this.state;
+            const { vertexLayout, program, vertexArray } = this.state;
             if (!program) {
                 throw new Error("Trying to draw without an active program");
             }
@@ -2474,56 +2549,7 @@ const allowedCommandProps = [
                 // Sets ctx.state.indexBuffer and ctx.state.activeAttributes
                 enableVertexData(ctx, vertexLayout, cmd, true);
             }
-            const instanced = Object.values(cmd.attributes || cmd.vertexArray.attributes).some((attrib)=>attrib.divisor);
-            const primitive = cmd.pipeline.primitive;
-            if (cmd.indices || cmd.vertexArray?.indices) {
-                // TODO: is that always correct
-                const count = cmd.count || this.state.indexBuffer.length;
-                const offset = cmd.indices?.offset || cmd.vertexArray?.indices?.offset || 0;
-                const type = cmd.indices?.type || cmd.vertexArray?.indices?.offset || this.state.indexBuffer.type;
-                if (instanced) {
-                    if (cmd.multiDraw && ctx.capabilities.multiDraw) {
-                        const ext = gl.getExtension("WEBGL_multi_draw");
-                        if (cmd.multiDraw.baseVertices && cmd.multiDraw.baseInstances) {
-                            const baseVertexBaseInstanceExt = gl.getExtension("WEBGL_multi_draw_instanced_base_vertex_base_instance");
-                            if (!baseVertexBaseInstanceExt) {
-                                throw new Error("WEBGL_multi_draw_instanced_base_vertex_base_instance not supported");
-                            }
-                            baseVertexBaseInstanceExt.multiDrawElementsInstancedBaseVertexBaseInstanceWEBGL(primitive, cmd.multiDraw.counts, cmd.multiDraw.countsOffset || 0, type, cmd.multiDraw.offsets, cmd.multiDraw.offsetsOffset || 0, cmd.multiDraw.instanceCounts, cmd.multiDraw.instanceCountsOffset || 0, cmd.multiDraw.baseVertices, cmd.multiDraw.baseVerticesOffset || 0, cmd.multiDraw.baseInstances, cmd.multiDraw.baseInstancesOffset || 0, cmd.multiDraw.counts.length);
-                        } else {
-                            ext.multiDrawElementsInstancedWEBGL(primitive, cmd.multiDraw.counts, cmd.multiDraw.countsOffset || 0, type, cmd.multiDraw.offsets, cmd.multiDraw.offsetsOffset || 0, cmd.multiDraw.instanceCounts, cmd.multiDraw.instanceCountsOffset || 0, cmd.multiDraw.counts.length);
-                        }
-                    } else {
-                        gl.drawElementsInstanced(primitive, count, type, offset, cmd.instances);
-                    }
-                } else {
-                    if (cmd.multiDraw && ctx.capabilities.multiDraw) {
-                        const ext = gl.getExtension("WEBGL_multi_draw");
-                        ext.multiDrawElementsWEBGL(primitive, cmd.multiDraw.counts, cmd.multiDraw.countsOffset || 0, type, cmd.multiDraw.offsets, cmd.multiDraw.offsetsOffset || 0, cmd.multiDraw.counts.length);
-                    } else {
-                        gl.drawElements(primitive, count, type, offset);
-                    }
-                }
-            } else if (cmd.count) {
-                const first = 0;
-                if (instanced) {
-                    if (cmd.multiDraw && ctx.capabilities.multiDraw) {
-                        const ext = gl.getExtension("WEBGL_multi_draw");
-                        ext.multiDrawArraysInstancedWEBGL(primitive, cmd.multiDraw.firsts, cmd.multiDraw.firstsOffset || 0, cmd.multiDraw.counts, cmd.multiDraw.countsOffset || 0, cmd.multiDraw.instanceCounts, cmd.multiDraw.instanceCountsOffset || 0, cmd.multiDraw.firsts.length);
-                    } else {
-                        gl.drawArraysInstanced(primitive, first, cmd.count, cmd.instances);
-                    }
-                } else {
-                    if (cmd.multiDraw && ctx.capabilities.multiDraw) {
-                        const ext = gl.getExtension("WEBGL_multi_draw");
-                        ext.multiDrawArraysWEBGL(primitive, cmd.multiDraw.firsts, cmd.multiDraw.firstsOffset || 0, cmd.multiDraw.counts, cmd.multiDraw.countsOffset || 0, cmd.multiDraw.firsts.length);
-                    } else {
-                        gl.drawArrays(primitive, first, cmd.count);
-                    }
-                }
-            } else {
-                throw new Error("Vertex arrays requires elements or count to draw");
-            }
+            draw(ctx, cmd);
             this.checkError();
         },
         // TODO: switching to lightweight resources would allow to just clone state
