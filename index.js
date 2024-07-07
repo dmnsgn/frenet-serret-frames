@@ -145,3 +145,5 @@ function frenetSerretFrames(geometry, options) {
 }
 
 export default frenetSerretFrames;
+
+export * from "./types.js";
