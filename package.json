@@ -1,6 +1,6 @@
 {
   "name": "frenet-serret-frames",
-  "version": "3.1.0",
+  "version": "3.1.1",
   "description": "Compute Frenet-Serret frames for a geometry of 3D positions and optionally provided tangents.",
   "keywords": [
     "path",
@@ -14,7 +14,10 @@
   ],
   "homepage": "https://github.com/dmnsgn/frenet-serret-frames",
   "bugs": "https://github.com/dmnsgn/frenet-serret-frames/issues",
-  "repository": "dmnsgn/frenet-serret-frames",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dmnsgn/frenet-serret-frames.git"
+  },
   "funding": [
     {
       "type": "individual",
