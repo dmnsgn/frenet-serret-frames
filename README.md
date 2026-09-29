@@ -65,22 +65,20 @@ console.log(geometry);
 
 <dl>
 <dt><a href="#frenetSerretFrames">frenetSerretFrames(geometry, [options])</a> ⇒ <code><a href="#SimplicialComplexWithTNB">SimplicialComplexWithTNB</a></code></dt>
-<dd><p>Compute Frenet-Serret frames for a geometry of 3D positions and optionally provided tangents.</p>
+<dd><p>Compute rotation minimizing (Bishop) or Frenet-Serret frames for a path of 3D
+positions.</p>
 </dd>
 </dl>
 
 ## Typedefs
 
 <dl>
-<dt><a href="#vec2">vec2</a> : <code>Array.&lt;number&gt;</code></dt>
-<dd></dd>
-<dt><a href="#vec3">vec3</a> : <code>Array.&lt;number&gt;</code></dt>
-<dd></dd>
 <dt><a href="#SimplicialComplex">SimplicialComplex</a> : <code>object</code></dt>
 <dd><p>Geometry definition.</p>
 </dd>
 <dt><a href="#SimplicialComplexWithTNB">SimplicialComplexWithTNB</a> : <code>object</code></dt>
-<dd><p>Geometry definition augmented with tangents, normals and binormals.</p>
+<dd><p>Geometry definition augmented with
+  tangents, normals and binormals.</p>
 </dd>
 <dt><a href="#Options">Options</a> : <code>object</code></dt>
 <dd><p>Options for frames computation. All optional.</p>
@@ -91,26 +89,20 @@ console.log(geometry);
 
 ## frenetSerretFrames(geometry, [options]) ⇒ [<code>SimplicialComplexWithTNB</code>](#SimplicialComplexWithTNB)
 
-Compute rotation minimizing (Bishop) or Frenet-Serret frames for a path of 3D positions.
+Compute rotation minimizing (Bishop) or Frenet-Serret frames for a path of 3D
+positions.
 
 **Kind**: global function
-**See**: [Frenet–Serret formulas](https://en.wikipedia.org/wiki/Frenet%E2%80%93Serret_formulas)
+**See**
+
+- [Frenet–Serret formulas](https://en.wikipedia.org/wiki/Frenet%E2%80%93Serret_formulas)
+- [Computation of Rotation Minimizing Frames (Wang et al. 2008)](https://www.microsoft.com/en-us/research/wp-content/uploads/2016/12/Computation-of-rotation-minimizing-frames.pdf)
 
 | Param     | Type                                                 | Default         |
 | --------- | ---------------------------------------------------- | --------------- |
 | geometry  | [<code>SimplicialComplex</code>](#SimplicialComplex) |                 |
 | [options] | [<code>Options</code>](#Options)                     | <code>{}</code> |
 
-<a name="vec2"></a>
-
-## vec2 : <code>Array.&lt;number&gt;</code>
-
-**Kind**: global typedef
-<a name="vec3"></a>
-
-## vec3 : <code>Array.&lt;number&gt;</code>
-
-**Kind**: global typedef
 <a name="SimplicialComplex"></a>
 
 ## SimplicialComplex : <code>object</code>
@@ -120,31 +112,33 @@ Geometry definition.
 **Kind**: global typedef
 **Properties**
 
-| Name       | Type                                                                                                                                              |
-| ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
-| positions  | <code>Float32Array</code> \| <code>Array</code> \| [<code>Array.&lt;vec3&gt;</code>](#vec3)                                                       |
-| [tangents] | <code>Float32Array</code> \| <code>Array</code> \| [<code>Array.&lt;vec3&gt;</code>](#vec3)                                                       |
-| [normals]  | <code>Float32Array</code> \| <code>Array</code> \| [<code>Array.&lt;vec3&gt;</code>](#vec3)                                                       |
-| [uvs]      | <code>Float32Array</code> \| <code>Array</code> \| [<code>Array.&lt;vec2&gt;</code>](#vec2)                                                       |
-| [cells]    | <code>Uint8Array</code> \| <code>Uint16Array</code> \| <code>Uint32Array</code> \| <code>Array</code> \| [<code>Array.&lt;vec3&gt;</code>](#vec3) |
+| Name        | Type                                                                                                                                                     |
+| ----------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| positions   | <code>module:pex-math~TypedArray</code> \| <code>Array.&lt;number&gt;</code> \| <code>Array.&lt;module:pex-math~Vec3&gt;</code>                          |
+| [tangents]  | <code>module:pex-math~TypedArray</code> \| <code>Array.&lt;number&gt;</code> \| <code>Array.&lt;module:pex-math~Vec3&gt;</code>                          |
+| [normals]   | <code>module:pex-math~TypedArray</code> \| <code>Array.&lt;number&gt;</code> \| <code>Array.&lt;module:pex-math~Vec3&gt;</code>                          |
+| [binormals] | <code>module:pex-math~TypedArray</code> \| <code>Array.&lt;number&gt;</code> \| <code>Array.&lt;module:pex-math~Vec3&gt;</code>                          |
+| [uvs]       | <code>module:pex-math~TypedArray</code> \| <code>Array.&lt;number&gt;</code> \| <code>Array.&lt;module:pex-math~Vec2&gt;</code>                          |
+| [cells]     | <code>Uint8Array</code> \| <code>Uint16Array</code> \| <code>Uint32Array</code> \| <code>Array</code> \| <code>Array.&lt;module:pex-math~Vec3&gt;</code> |
 
 <a name="SimplicialComplexWithTNB"></a>
 
 ## SimplicialComplexWithTNB : <code>object</code>
 
-Geometry definition augmented with tangents, normals and binormals.
+Geometry definition augmented with
+tangents, normals and binormals.
 
 **Kind**: global typedef
 **Properties**
 
-| Name      | Type                                                                                                                                              |
-| --------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
-| positions | <code>Float32Array</code> \| <code>Array</code> \| [<code>Array.&lt;vec3&gt;</code>](#vec3)                                                       |
-| tangents  | <code>Float32Array</code> \| <code>Array</code> \| [<code>Array.&lt;vec3&gt;</code>](#vec3)                                                       |
-| normals   | <code>Float32Array</code> \| <code>Array</code> \| [<code>Array.&lt;vec3&gt;</code>](#vec3)                                                       |
-| binormals | <code>Float32Array</code> \| <code>Array</code> \| [<code>Array.&lt;vec3&gt;</code>](#vec3)                                                       |
-| [uvs]     | <code>Float32Array</code> \| <code>Array</code> \| [<code>Array.&lt;vec2&gt;</code>](#vec2)                                                       |
-| [cells]   | <code>Uint8Array</code> \| <code>Uint16Array</code> \| <code>Uint32Array</code> \| <code>Array</code> \| [<code>Array.&lt;vec3&gt;</code>](#vec3) |
+| Name      | Type                                                                                                                                                     |
+| --------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| positions | <code>module:pex-math~TypedArray</code> \| <code>Array.&lt;number&gt;</code> \| <code>Array.&lt;module:pex-math~Vec3&gt;</code>                          |
+| tangents  | <code>module:pex-math~TypedArray</code> \| <code>Array.&lt;number&gt;</code> \| <code>Array.&lt;module:pex-math~Vec3&gt;</code>                          |
+| normals   | <code>module:pex-math~TypedArray</code> \| <code>Array.&lt;number&gt;</code> \| <code>Array.&lt;module:pex-math~Vec3&gt;</code>                          |
+| binormals | <code>module:pex-math~TypedArray</code> \| <code>Array.&lt;number&gt;</code> \| <code>Array.&lt;module:pex-math~Vec3&gt;</code>                          |
+| [uvs]     | <code>module:pex-math~TypedArray</code> \| <code>Array.&lt;number&gt;</code> \| <code>Array.&lt;module:pex-math~Vec2&gt;</code>                          |
+| [cells]   | <code>Uint8Array</code> \| <code>Uint16Array</code> \| <code>Uint32Array</code> \| <code>Array</code> \| <code>Array.&lt;module:pex-math~Vec3&gt;</code> |
 
 <a name="Options"></a>
 
@@ -155,10 +149,13 @@ Options for frames computation. All optional.
 **Kind**: global typedef
 **Properties**
 
-| Name            | Type                       | Default            | Description                                                                                          |
-| --------------- | -------------------------- | ------------------ | ---------------------------------------------------------------------------------------------------- |
-| [closed]        | <code>boolean</code>       | <code>false</code> | Specify is the path is closed.                                                                       |
-| [initialNormal] | [<code>vec3</code>](#vec3) | <code></code>      | Specify a starting normal for the frames. Default to the direction of the minimum tangent component. |
+| Name            | Type                                                               | Default                         | Description                                                                                                                                                                                                                                                                                                                    |
+| --------------- | ------------------------------------------------------------------ | ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| [closed]        | <code>boolean</code>                                               | <code>false</code>              | Specify if the path is closed.                                                                                                                                                                                                                                                                                                 |
+| [mode]          | <code>&quot;bishop&quot;</code> \| <code>&quot;frenet&quot;</code> | <code>&quot;bishop&quot;</code> | Frame type: - "bishop": rotation minimizing (parallel transport) frames, computed with the double reflection method. Twist free, suited for sweeping. - "frenet": normal pointing towards the curvature centre. Flips at inflection points and is undefined on straight parts, where the nearest frame is transported instead. |
+| [initialNormal] | <code>module:pex-math~Vec3</code>                                  | <code></code>                   | Specify a starting normal for "bishop" frames, made orthogonal to the first tangent. Defaults to a coordinate axis not aligned with the first tangent, also used when the initial normal is parallel to it.                                                                                                                    |
+| [finalNormal]   | <code>module:pex-math~Vec3</code>                                  | <code></code>                   | Specify an ending normal for "bishop" frames of open paths, made orthogonal to the last tangent. Reached with the smallest rotation, spread along the arc length. Ignored when parallel to the last tangent.                                                                                                                   |
+| [twist]         | <code>number</code>                                                | <code>0</code>                  | Additional rotation of "bishop" frames around the tangent, in radians, spread along the arc length from the first frame to the last. Closed paths and paths with a final normal need a multiple of 2π to keep their end frame, or of π when the sign of the normal doesn't matter (eg. flat ribbons).                          |
 
 <!-- api-end -->
 

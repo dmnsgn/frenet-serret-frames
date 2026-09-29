@@ -1,6 +1,6 @@
 {
   "name": "frenet-serret-frames",
-  "version": "3.1.1",
+  "version": "4.0.0",
   "description": "Compute rotation minimizing (Bishop) or Frenet-Serret frames for a path of 3D positions.",
   "keywords": [
     "path",
