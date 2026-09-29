@@ -1,7 +1,7 @@
 {
   "name": "frenet-serret-frames",
   "version": "3.1.1",
-  "description": "Compute Frenet-Serret frames for a geometry of 3D positions and optionally provided tangents.",
+  "description": "Compute rotation minimizing (Bishop) or Frenet-Serret frames for a path of 3D positions.",
   "keywords": [
     "path",
     "spline",
@@ -10,7 +10,10 @@
     "frenet",
     "serret",
     "frames",
-    "parallel-transport"
+    "parallel-transport",
+    "rotation-minimizing",
+    "bishop",
+    "double-reflection"
   ],
   "homepage": "https://github.com/dmnsgn/frenet-serret-frames",
   "bugs": "https://github.com/dmnsgn/frenet-serret-frames/issues",
@@ -38,21 +41,23 @@
       "default": "./index.js"
     }
   },
-  "main": "index.js",
-  "types": "types/index.d.ts",
+  "main": "./index.js",
+  "types": "./types/index.d.ts",
   "dependencies": {
-    "path-tangents": "^3.1.1",
-    "pex-math": "^4.1.0"
+    "path-tangents": "^4.2.0",
+    "pex-math": "^4.4.0"
   },
   "devDependencies": {
-    "es-module-shims": "^1.10.0",
-    "pex-cam": "^3.0.0-alpha.1",
-    "pex-context": "^3.1.1",
-    "tweakpane": "^4.0.4"
+    "es-module-shims": "^2.8.4",
+    "pex-cam": "^3.0.1",
+    "pex-context": "^4.1.0",
+    "pex-random": "^2.1.2",
+    "primitive-geometry": "^3.1.0",
+    "tweakpane": "^4.0.5"
   },
+  "packageManager": "npm@10.5.1",
   "engines": {
     "node": ">=22.0.0",
-    "npm": ">=10.5.1",
-    "snowdev": ">=2.2.x"
+    "snowdev": ">=3.0.0-alpha.3"
   }
 }

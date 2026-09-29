@@ -10,13 +10,13 @@
 [![linted with eslint](https://img.shields.io/badge/linted_with-ES_Lint-4B32C3.svg?logo=eslint)](https://github.com/eslint/eslint)
 [![license](https://img.shields.io/github/license/dmnsgn/frenet-serret-frames)](https://github.com/dmnsgn/frenet-serret-frames/blob/main/LICENSE.md)
 
-Compute Frenet-Serret frames for a geometry of 3D positions and optionally provided tangents.
+Compute rotation minimizing (Bishop) or Frenet-Serret frames for a path of 3D positions.
 
 [![paypal](https://img.shields.io/badge/donate-paypal-informational?logo=paypal)](https://paypal.me/dmnsgn)
 [![coinbase](https://img.shields.io/badge/donate-coinbase-informational?logo=coinbase)](https://commerce.coinbase.com/checkout/56cbdf28-e323-48d8-9c98-7019e72c97f3)
 [![twitter](https://img.shields.io/twitter/follow/dmnsgn?style=social)](https://twitter.com/dmnsgn)
 
-![](https://raw.githubusercontent.com/dmnsgn/frenet-serret-frames/main/screenshot.gif)
+[![frenet-serret-frames screenshot](https://raw.githubusercontent.com/dmnsgn/frenet-serret-frames/main/screenshot.gif)](https://dmnsgn.github.io/frenet-serret-frames/)
 
 ## Installation
 
@@ -24,23 +24,36 @@ Compute Frenet-Serret frames for a geometry of 3D positions and optionally provi
 npm install frenet-serret-frames
 ```
 
+## Features
+
+- **Bishop frames** (default): rotation minimizing frames, also known as parallel transport frames, computed with the [double reflection method](https://www.microsoft.com/en-us/research/wp-content/uploads/2016/12/Computation-of-rotation-minimizing-frames.pdf). Minimal twist around the path, suited for sweeping tubes and ribbons.
+- **Frenet frames**: normal pointing towards the centre of curvature. Flips at inflection points; straight parts take the nearest frame.
+- **Seamless closed paths**: the mismatch at the seam is spread along the arc length.
+- **Constraints**: `initialNormal`, `finalNormal` on open paths, and an additional `twist` spread along the arc length.
+- **Any layout**: flat or nested positions, normals and binormals out in the same layout, written into provided arrays.
+- **Robust**: duplicated points, straight lines and reversed tangents handled without flips.
+
 ## Usage
 
 ```js
 import frenetSerretFrames from "frenet-serret-frames";
+import { squirclePath } from "primitive-geometry";
 
-const geometry = { positions, cells };
+const geometry = squirclePath();
 frenetSerretFrames(geometry, {
-  closed: true,
-  initialNormal: [0, 1, 0],
+  closed: false,
+  mode: "bishop",
+  initialNormal: null,
+  finalNormal: null,
+  twist: 0,
 });
 console.log(geometry);
 // {
-//   positions: Float32Array [x, y, z, x, y, z,  ...],
-//   tangents: Float32Array [x, y, z, x, y, z, ...]
-//   normals: Float32Array [x, y, z, x, y, z, ...]
-//   binormals: Float32Array [x, y, z, x, y, z, ...]
-//   cells: Uint8/16/32/Array [a, b, c, a, b, c, ...],
+//   positions: Float32Array [x, y, z, x, y, z, ...],
+//   cells: [[a, b, c, ...]],
+//   tangents: Float32Array [x, y, z, x, y, z, ...],
+//   normals: Float32Array [x, y, z, x, y, z, ...],
+//   binormals: Float32Array [x, y, z, x, y, z, ...],
 // }
 ```
 
@@ -78,7 +91,7 @@ console.log(geometry);
 
 ## frenetSerretFrames(geometry, [options]) ⇒ [<code>SimplicialComplexWithTNB</code>](#SimplicialComplexWithTNB)
 
-Compute Frenet-Serret frames for a geometry of 3D positions and optionally provided tangents.
+Compute rotation minimizing (Bishop) or Frenet-Serret frames for a path of 3D positions.
 
 **Kind**: global function
 **See**: [Frenet–Serret formulas](https://en.wikipedia.org/wiki/Frenet%E2%80%93Serret_formulas)

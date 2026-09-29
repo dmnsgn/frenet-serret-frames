@@ -3,10 +3,14 @@
     "es-module-shims": "./es-module-shims.js",
     "es-module-shims/debug": "./es-module-shims/debug.js",
     "es-module-shims/wasm": "./es-module-shims/wasm.js",
+    "es-module-shims/typescript-transform": "./es-module-shims/typescript-transform.js",
     "path-tangents": "./path-tangents.js",
     "pex-cam": "./pex-cam.js",
     "pex-context": "./pex-context.js",
     "pex-math": "./pex-math.js",
-    "tweakpane": "./tweakpane.js"
+    "pex-random": "./pex-random.js",
+    "primitive-geometry": "./primitive-geometry.js",
+    "tweakpane": "./tweakpane.js",
+    "frenet-serret-frames": "../index.js"
   }
 }
